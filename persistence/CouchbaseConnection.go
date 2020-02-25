@@ -1,255 +1,276 @@
 package persistence
 
-// import (
+import (
+	"strings"
+	"sync"
+	"time"
 
-// )
+	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
+	cerr "github.com/pip-services3-go/pip-services3-commons-go/errors"
+	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
+	clog "github.com/pip-services3-go/pip-services3-components-go/log"
+	couchcon "github.com/pip-services3-go/pip-services3-couchbase-go/connect"
+	gocb "gopkg.in/couchbase/gocb.v1"
+)
 
-// /** @module persistence */
-// let async = require('async');
+/*
+Couchbase connection using plain couchbase driver.
 
-// import { IReferenceable } from 'pip-services3-commons-node';
-// import { IReferences } from 'pip-services3-commons-node';
-// import { IConfigurable } from 'pip-services3-commons-node';
-// import { IOpenable } from 'pip-services3-commons-node';
-// import { ConfigParams } from 'pip-services3-commons-node';
-// import { ConnectionException } from 'pip-services3-commons-node';
-// import { CompositeLogger } from 'pip-services3-components-node';
+This is the most basic persistence component that is only
+able to store data items of any type. Specific CRUD operations
+over the data items must be implemented in child classes by
+accessing c._collection or c._model properties.
 
-// import { CouchbaseConnectionResolver } from '../connect/CouchbaseConnectionResolver';
+ Configuration parameters
 
-// /**
-//  * Couchbase connection using plain couchbase driver.
-//  *
-//  * This is the most basic persistence component that is only
-//  * able to store data items of any type. Specific CRUD operations
-//  * over the data items must be implemented in child classes by
-//  * accessing <code>this._collection</code> or <code>this._model</code> properties.
-//  *
-//  * ### Configuration parameters ###
-//  *
-//  * - bucket:                      (optional) Couchbase bucket name
-//  * - connection(s):
-//  *   - discovery_key:             (optional) a key to retrieve the connection from [[https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/interfaces/connect.idiscovery.html IDiscovery]]
-//  *   - host:                      host name or IP address
-//  *   - port:                      port number (default: 27017)
-//  *   - uri:                       resource URI or connection string with all parameters in it
-//  * - credential(s):
-//  *   - store_key:                 (optional) a key to retrieve the credentials from [[https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/interfaces/auth.icredentialstore.html ICredentialStore]]
-//  *   - username:                  (optional) user name
-//  *   - password:                  (optional) user password
-//  * - options:
-//  *   - auto_create:               (optional) automatically create missing bucket (default: false)
-//  *   - auto_index:                (optional) automatically create primary index (default: false)
-//  *   - flush_enabled:             (optional) bucket flush enabled (default: false)
-//  *   - bucket_type:               (optional) bucket type (default: couchbase)
-//  *   - ram_quota:                 (optional) RAM quota in MB (default: 100)
-//  *
-//  * ### References ###
-//  *
-//  * - <code>\*:logger:\*:\*:1.0</code>           (optional) [[https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/interfaces/log.ilogger.html ILogger]] components to pass log messages
-//  * - <code>\*:discovery:\*:\*:1.0</code>        (optional) [[https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/interfaces/connect.idiscovery.html IDiscovery]] services
-//  * - <code>\*:credential-store:\*:\*:1.0</code> (optional) Credential stores to resolve credentials
-//  *
-//  */
-// export class CouchbaseConnection implements IReferenceable, IConfigurable, IOpenable {
+- bucket:                      (optional) Couchbase bucket name
+- connection(s):
+  - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery]]
+  - host:                      host name or IP address
+  - port:                      port number (default: 27017)
+  - uri:                       resource URI or connection string with all parameters in it
+- credential(s):
+  - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore]]
+  - username:                  (optional) user name
+  - password:                  (optional) user password
+- options:
+  - auto_create:               (optional) automatically create missing bucket (default: false)
+  - auto_index:                (optional) automatically create primary index (default: false)
+  - flush_enabled:             (optional) bucket flush enabled (default: false)
+  - bucket_type:               (optional) bucket type (default: couchbase)
+  - ram_quota:                 (optional) RAM quota in MB (default: 100)
+ *\
+ References
 
-//     private _defaultConfig: ConfigParams = ConfigParams.fromTuples(
-//         "bucket", null,
+- \*:logger:\*:\*:1.0           (optional) ILogger components to pass log messages
+- \*:discovery:\*:\*:1.0        (optional)IDiscovery services
+- \*:credential-store:\*:\*:1.0 (optional) Credential stores to resolve credentials
+*/
+// IReferenceable, IConfigurable, IOpenable
 
-//         // connections.*
-//         // credential.*
+type CouchbaseConnection struct {
+	defaultConfig *cconf.ConfigParams
+	//The logger.
+	Logger *clog.CompositeLogger
+	//The connection resolver.
+	ConnectionResolver *couchcon.CouchbaseConnectionResolver
+	//The configuration options.
+	Options *cconf.ConfigParams
+	//The Couchbase cluster connection object.
+	Connection *gocb.Cluster
+	//The Couchbase bucket name.
+	BucketName string
+	//The Couchbase bucket object.
+	Bucket *gocb.Bucket
+}
 
-//         "options.auto_create", false,
-//         "options.auto_index", true,
-//         "options.flush_enabled", true,
-//         "options.bucket_type", "couchbase",
-//         "options.ram_quota", 100,
-//     );
+/*
+   Creates a new instance of the connection component.
+   - bucketName the name of couchbase bucket
+*/
+func NewCouchbaseConnection(bucketName string) *CouchbaseConnection {
+	cc := CouchbaseConnection{}
+	cc.BucketName = bucketName
+	cc.defaultConfig = cconf.NewConfigParamsFromTuples(
+		"bucket", nil,
 
-//     /**
-//      * The logger.
-//      */
-//     protected _logger: CompositeLogger = new CompositeLogger();
-//     /**
-//      * The connection resolver.
-//      */
-//     protected _connectionResolver: CouchbaseConnectionResolver = new CouchbaseConnectionResolver();
-//     /**
-//      * The configuration options.
-//      */
-//     protected _options: ConfigParams = new ConfigParams();
+		// connections.*
+		// credential.*
 
-//     /**
-//      * The Couchbase cluster connection object.
-//      */
-//     protected _connection: any;
-//     /**
-//      * The Couchbase bucket name.
-//      */
-//     protected _bucketName: string;
-//     /**
-//      * The Couchbase bucket object.
-//      */
-//     protected _bucket: any;
+		"options.auto_create", false,
+		"options.auto_index", true,
+		"options.flush_enabled", true,
+		"options.bucket_type", "couchbase",
+		"options.ram_quota", 100,
+	)
+	cc.Logger = clog.NewCompositeLogger()
+	cc.ConnectionResolver = couchcon.NewCouchbaseConnectionResolver()
+	cc.Options = cconf.NewEmptyConfigParams()
+	return &cc
+}
 
-//     /**
-//      * Creates a new instance of the connection component.
-//      *
-//      * @param bucketName the name of couchbase bucket
-//      */
-//     public constructor(bucketName?: string) {
-//         this._bucketName = bucketName;
-//     }
+/*
+   Configures component by passing configuration parameters.
 
-//     /**
-//      * Configures component by passing configuration parameters.
-//      *
-//      * @param config    configuration parameters to be set.
-//      */
-//     public configure(config: ConfigParams): void {
-//         config = config.setDefaults(this._defaultConfig);
+   - config    configuration parameters to be set.
+*/
+func (c *CouchbaseConnection) Configure(config *cconf.ConfigParams) {
+	config = config.SetDefaults(c.defaultConfig)
+	c.ConnectionResolver.Configure(config)
+	c.BucketName = config.GetAsStringWithDefault("bucket", c.BucketName)
+	c.Options = c.Options.Override(config.GetSection("options"))
+}
 
-//         this._connectionResolver.configure(config);
+/*
+	Sets references to dependent components.
 
-//         this._bucketName = config.getAsStringWithDefault('bucket', this._bucketName);
-//         this._options = this._options.override(config.getSection("options"));
-//     }
+	- references 	references to locate the component dependencies.
+*/
+func (c *CouchbaseConnection) SetReferences(references cref.IReferences) {
+	c.Logger.SetReferences(references)
+	c.ConnectionResolver.SetReferences(references)
+}
 
-//     /**
-// 	 * Sets references to dependent components.
-// 	 *
-// 	 * @param references 	references to locate the component dependencies.
-//      */
-//     public setReferences(references: IReferences): void {
-//         this._logger.setReferences(references);
-//         this._connectionResolver.setReferences(references);
-//     }
+/*
+	Checks if the component is opened.
 
-//     /**
-// 	 * Checks if the component is opened.
-// 	 *
-// 	 * @returns true if the component has been opened and false otherwise.
-//      */
-//     public isOpen(): boolean {
-//         // return this._connection.readyState == 1;
-//         return this._connection != null;
-//     }
+	Retrun true if the component has been opened and false otherwise.
+*/
+func (c *CouchbaseConnection) IsOpen() bool {
+	// return c.Connection.readyState == 1;
+	return c.Connection != nil
+}
 
-//     /**
-// 	 * Opens the component.
-// 	 *
-// 	 * @param correlationId 	(optional) transaction id to trace execution through call chain.
-//      * @param callback 			callback function that receives error or null no errors occured.
-//      */
-//     public open(correlationId: string, callback?: (err: any) => void): void {
-//         this._connectionResolver.resolve(correlationId, (err, connection) => {
-//             if (err) {
-//                 if (callback) callback(err);
-//                 else this._logger.error(correlationId, err, 'Failed to resolve Couchbase connection');
-//                 return;
-//             }
+/*
+	Opens the component.
 
-//             this._logger.debug(correlationId, "Connecting to couchbase");
+	- correlationId 	(optional) transaction id to trace execution through call chain.
+    - callback 			callback function that receives error or null no errors occured.
+*/
+func (c *CouchbaseConnection) Open(correlationId string) (err error) {
 
-//             let couchbase = require('couchbase');
-//             this._connection = new couchbase.Cluster(connection.uri);
-//             if (connection.username)
-//                 this._connection.authenticate(connection.username, connection.password);
+	connection, resErr := c.ConnectionResolver.Resolve(correlationId)
+	if resErr != nil {
+		c.Logger.Error(correlationId, err, "Failed to resolve Couchbase connection")
+		return resErr
+	}
 
-//             let newBucket = false;
+	c.Logger.Debug(correlationId, "Connecting to couchbase")
 
-//             async.series([
-//                 (callback) => {
-//                     let autocreate = this._options.getAsBoolean('auto_create');
-//                     if (!autocreate) {
-//                         callback();
-//                         return;
-//                     }
+	conn, conErr := gocb.Connect(connection.Uri)
+	if conErr != nil {
+		return conErr
+	}
+	c.Connection = conn
+	if connection.Username != "" {
+		c.Connection.Authenticate(gocb.PasswordAuthenticator{
+			Username: connection.Username,
+			Password: connection.Password,
+		})
+	}
+	err = nil
+	wg := sync.WaitGroup{}
+	newBucket := false
+	wg.Add(1)
 
-//                     let options = {
-//                         bucketType: this._options.getAsStringWithDefault('bucket_type', 'couchbase'),
-//                         ramQuotaMB: this._options.getAsLongWithDefault('ram_quota', 100),
-//                         flushEnabled: this._options.getAsBooleanWithDefault('flush_enabled', true) ? 1 : 0
-//                     };
+	go func() {
+		defer wg.Done()
+		autocreate := c.Options.GetAsBoolean("auto_create")
+		if autocreate {
 
-//                     this._connection.manager().createBucket(this._bucketName, options, (err, result) => {
-//                         newBucket = err == null;
+			bucketStrType := c.Options.GetAsStringWithDefault("bucket_type", "couchbase")
+			bucketType := gocb.BucketType(0) // couchbase
 
-//                         if (err && err.message && err.message.indexOf('name already exist') > 0) {
-//                             callback();
-//                             return;
-//                         }
+			switch bucketStrType {
+			case "couchbase":
+				bucketType = gocb.BucketType(0)
+				break
+			case "memcached":
+				bucketType = gocb.BucketType(1)
+				break
+			case "ephemeral":
+				bucketType = gocb.BucketType(2)
+				break
+			}
+			options := gocb.BucketSettings{
+				Name:         c.BucketName,
+				Type:         bucketType,
+				Quota:        int(c.Options.GetAsLongWithDefault("ram_quota", 100)),
+				FlushEnabled: c.Options.GetAsBooleanWithDefault("flush_enabled", true),
+			}
+			crtErr := c.Connection.Manager("", "").InsertBucket(&options)
+			if crtErr != nil {
+				err = crtErr
+				return
+			}
+			if err.Error() != "" && strings.Index(err.Error(), "name already exist") > 0 {
+				err = nil
+				return
+			}
+			newBucket = true
+			// Delay to allow couchbase to initialize the bucket
+			// Otherwise opening will fail
+			select {
+			case <-time.After(time.Millisecond * 2000):
+			}
+		}
+	}()
+	wg.Wait()
 
-//                         // Delay to allow couchbase to initialize the bucket
-//                         // Otherwise opening will fail
-//                         if (err == null)
-//                             setTimeout(() => { callback(err); }, 2000);
-//                         else callback(err);
-//                     });
-//                 },
-//                 (callback) => {
-//                     this._bucket = this._connection.openBucket(this._bucketName, (err) => {
-//                         if (err) {
-//                             this._logger.error(correlationId, err, "Failed to open bucket");
-//                             err = new ConnectionException(correlationId, "CONNECT_FAILED", "Connection to couchbase failed").withCause(err);
-//                             this._bucket = null;
-//                         } else {
-//                             this._logger.debug(correlationId, "Connected to couchbase bucket %s", this._bucketName);
-//                         }
+	if err != nil {
+		c.Connection = nil
+		c.Bucket = nil
+		return err
+	}
 
-//                         callback(err);
-//                     });
-//                 },
-//                 (callback) => {
-//                     let autoIndex = this._options.getAsBoolean('auto_index');
-//                     if (!newBucket && !autoIndex) {
-//                         callback();
-//                         return;
-//                     }
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		bucket, opnErr := c.Connection.OpenBucket(c.BucketName, "")
+		if opnErr != nil {
+			c.Logger.Error(correlationId, err, "Failed to open bucket")
+			err = cerr.NewConnectionError(correlationId, "CONNECT_FAILED", "Connection to couchbase failed").WithCause(err)
+			c.Bucket = nil
+			err = opnErr
+			return
+		}
+		c.Logger.Debug(correlationId, "Connected to couchbase bucket %s", c.BucketName)
+		c.Bucket = bucket
+	}()
+	wg.Wait()
+	if err != nil {
+		c.Connection = nil
+		c.Bucket = nil
+		return err
+	}
 
-//                     this._bucket.manager().createPrimaryIndex({ ignoreIfExists: 1}, (err) => {
-//                         callback(err);
-//                     });
-//                 }
-//             ], (err) => {
-//                 if (err) {
-//                     this._connection = null;
-//                     this._bucket = null;
-//                 }
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		autoIndex := c.Options.GetAsBoolean("auto_index")
+		if !newBucket && !autoIndex {
+			return
+		}
 
-//                 callback(err);
-//             });
-//         });
-//     }
+		idxErr := c.Bucket.Manager("", "").CreatePrimaryIndex("", true, false)
+		if idxErr != nil {
+			err = idxErr
+			return
+		}
+	}()
+	wg.Wait()
+	if err != nil {
+		c.Connection = nil
+		c.Bucket = nil
+		return err
+	}
+	return nil
+}
 
-//     /**
-// 	 * Closes component and frees used resources.
-// 	 *
-// 	 * @param correlationId 	(optional) transaction id to trace execution through call chain.
-//      * @param callback 			callback function that receives error or null no errors occured.
-//      */
-//     public close(correlationId: string, callback?: (err: any) => void): void {
-//         if (this._bucket)
-//             this._bucket.disconnect();
+/*
+	Closes component and frees used resources.
+	 *
+	- correlationId 	(optional) transaction id to trace execution through call chain.
+    - callback 			callback function that receives error or null no errors occured.
+*/
+func (c *CouchbaseConnection) Close(correlationId string) (err error) {
+	if c.Bucket != nil {
+		c.Bucket.Close()
+	}
+	c.Connection = nil
+	c.Bucket = nil
+	c.Logger.Debug(correlationId, "Disconnected from couchbase bucket %s", c.BucketName)
+	return nil
+}
 
-//         this._connection = null;
-//         this._bucket = null;
+func (c *CouchbaseConnection) GetConnection() *gocb.Cluster {
+	return c.Connection
+}
 
-//         this._logger.debug(correlationId, "Disconnected from couchbase bucket %s", this._bucketName);
+func (c *CouchbaseConnection) GetBucket() *gocb.Bucket {
+	return c.Bucket
+}
 
-//         callback(null);
-//     }
-
-//     public getConnection(): any {
-//         return this._connection;
-//     }
-
-//     public getBucket(): any {
-//         return this._bucket;
-//     }
-
-//     public getBucketName(): string {
-//         return this._bucketName;
-//     }
-
-// }
+func (c *CouchbaseConnection) GetBucketName() string {
+	return c.BucketName
+}

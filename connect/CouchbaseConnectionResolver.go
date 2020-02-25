@@ -1,7 +1,14 @@
 package connect
 
 import (
+	"strconv"
+	"sync"
+
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
+	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
+	cerr "github.com/pip-services3-go/pip-services3-commons-go/errors"
+	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
+	"github.com/pip-services3-go/pip-services3-components-go/auth"
 	cauth "github.com/pip-services3-go/pip-services3-components-go/auth"
 	ccon "github.com/pip-services3-go/pip-services3-components-go/connect"
 )
@@ -45,8 +52,8 @@ type CouchbaseConnectionResolver struct {
 
 func NewCouchbaseConnectionResolver() *CouchbaseConnectionResolver {
 	ccr := CouchbaseConnectionResolver{}
-	ccr.ConnectionResolver = ccon.NewConnectionResolver()
-	ccr.CredentialResolver = cauth.NewCredentialResolver()
+	ccr.ConnectionResolver = ccon.NewEmptyConnectionResolver()
+	ccr.CredentialResolver = cauth.NewEmptyCredentialResolver()
 	return &ccr
 }
 
@@ -55,155 +62,182 @@ func NewCouchbaseConnectionResolver() *CouchbaseConnectionResolver {
 
    - config    configuration parameters to be set.
 */
-func (c *CouchbaseConnectionResolver) Configure(config cconf.ConfigParams) {
+func (c *CouchbaseConnectionResolver) Configure(config *cconf.ConfigParams) {
 	c.ConnectionResolver.Configure(config)
 	c.CredentialResolver.Configure(config)
 }
 
-//     /*
-// 	Sets references to dependent components.
-//
-// 	- references 	references to locate the component dependencies.
-//     */
-//     func (c*CouchbaseConnectionResolver) SetReferences(references: IReferences) {
-//         c.ConnectionResolver.setReferences(references);
-//         c.CredentialResolver.setReferences(references);
-//     }
+/*
+	Sets references to dependent components.
 
-//     func (c *CouchbaseConnectionResolver) validateConnection(correlationId: string, connection: ConnectionParams): any {
-//         let uri = connection.getUri();
-//         if (uri != null) return null;
+	- references 	references to locate the component dependencies.
+*/
+func (c *CouchbaseConnectionResolver) SetReferences(references cref.IReferences) {
+	c.ConnectionResolver.SetReferences(references)
+	c.CredentialResolver.SetReferences(references)
+}
 
-//         let host = connection.getHost();
-//         if (host == null)
-//             return new ConfigException(correlationId, "NO_HOST", "Connection host is not set");
+func (c *CouchbaseConnectionResolver) validateConnection(correlationId string, connection *ccon.ConnectionParams) error {
+	uri := connection.Uri()
+	if uri != "" {
+		return nil
+	}
 
-//         let port = connection.getPort();
-//         if (port == 0)
-//             return new ConfigException(correlationId, "NO_PORT", "Connection port is not set");
+	host := connection.Host()
+	if host == "" {
+		return cerr.NewConfigError(correlationId, "NO_HOST", "Connection host is not set")
+	}
 
-//         // let database = connection.getAsNullableString("database");
-//         // if (database == null)
-//         //     return new ConfigException(correlationId, "NO_DATABASE", "Connection database is not set");
+	port := connection.Port()
+	if port == 0 {
+		return cerr.NewConfigError(correlationId, "NO_PORT", "Connection port is not set")
+	}
+	// database = connection.getAsNullableString("database");
+	// if database == ""{
+	//     return cerr.NewConfigError(correlationId, "NO_DATABASE", "Connection database is not set");
+	// }
 
-//         return null;
-//     }
+	return nil
+}
 
-//     func (c *CouchbaseConnectionResolver) validateConnections(correlationId: string, connections: ConnectionParams[]): any {
-//         if (connections == null || connections.length == 0)
-//             return new ConfigException(correlationId, "NO_CONNECTION", "Database connection is not set");
+func (c *CouchbaseConnectionResolver) validateConnections(correlationId string, connections []*ccon.ConnectionParams) error {
+	if connections == nil || len(connections) == 0 {
+		return cerr.NewConfigError(correlationId, "NO_CONNECTION", "Database connection is not set")
+	}
 
-//         for (let connection of connections) {
-//             let error = c.validateConnection(correlationId, connection);
-//             if (error) return error;
-//         }
+	for _, connection := range connections {
+		err := c.validateConnection(correlationId, connection)
+		if err != nil {
+			return err
+		}
+	}
 
-//         return null;
-//     }
+	return nil
+}
 
-//     func (c *CouchbaseConnectionResolver) composeConnection(connections: ConnectionParams[], credential: CredentialParams): CouchbaseConnectionParams {
-//         let result = new CouchbaseConnectionParams();
+func (c *CouchbaseConnectionResolver) composeConnection(connections []*ccon.ConnectionParams, credential *cauth.CredentialParams) *CouchbaseConnectionParams {
+	result := new(CouchbaseConnectionParams)
 
-//         if (credential) {
-//             result.username = credential.getUsername();
-//             if (result.username)
-//                 result.password = credential.getPassword();
-//         }
+	if credential != nil {
+		result.Username = credential.Username()
+		if result.Username != "" {
+			result.Password = credential.Password()
+		}
+	}
 
-//         // If there is a uri then return it immediately
-//         for (let connection of connections) {
-//             result.uri = connection.getUri();
-//             if (result.uri) return result;
-//         }
+	// If there is a uri then return it immediately
+	for _, connection := range connections {
+		result.Uri = connection.Uri()
+		if result.Uri != "" {
+			return result
+		}
+	}
 
-//         // Define hosts
-//         let hosts = "";
-//         for (let connection of connections) {
-//             let host = connection.getHost();
-//             let port = connection.getPort();
+	// Define hosts
+	hosts := ""
+	for _, connection := range connections {
+		host := connection.Host()
+		port := connection.Port()
 
-//             if (hosts.length > 0)
-//                 hosts += ",";
-//             hosts += host + (port == null ? "" : ":" + port);
-//         }
+		if len(hosts) > 0 {
+			hosts += ","
+		}
+		if port > 0 {
+			host += host + ":" + strconv.FormatInt(int64(port), 10)
+		}
+		hosts += host
+	}
 
-//         // Define database
-//         let database = "";
-//         for (let connection of connections) {
-//             database = database || connection.getAsNullableString("database");
-//         }
-//         database = database || "";
-//         if (database.length > 0)
-//             database = "/" + database;
+	// Define database
+	database := ""
+	for _, connection := range connections {
+		if database == "" {
+			database = connection.GetAsString("database")
+		}
 
-//         // Define additional parameters parameters
-//         let options = ConfigParams.mergeConfigs(...connections).override(credential);
-//         options.remove("uri");
-//         options.remove("host");
-//         options.remove("port");
-//         options.remove("database");
-//         options.remove("username");
-//         options.remove("password");
-//         let params = "";
-//         let keys = options.getKeys();
-//         for (let key of keys) {
-//             if (params.length > 0)
-//                 params += "&";
+	}
 
-//             params += key;
+	if len(database) > 0 {
+		database = "/" + database
+	}
 
-//             let value = options.getAsString(key);
-//             if (value != null)
-//                 params += "=" + value;
-//         }
-//         if (params.length > 0)
-//             params = "?" + params;
+	// Define additional parameters parameters
+	consConf := cdata.NewEmptyStringValueMap()
+	for _, v := range connections {
+		consConf.Append(v.Value())
+	}
+	var options *cconf.ConfigParams
+	if credential != nil {
+		options = cconf.NewConfigParamsFromMaps(consConf.Value(), credential.Value())
+	} else {
+		options = cconf.NewConfigParamsFromValue(consConf.Value())
+	}
+	options.Remove("uri")
+	options.Remove("host")
+	options.Remove("port")
+	options.Remove("database")
+	options.Remove("username")
+	options.Remove("password")
+	params := ""
+	keys := options.Keys()
 
-//         // Compose uri
-//         result.uri = "couchbase://" + hosts + database + params;
+	for _, key := range keys {
+		if len(params) > 0 {
+			params += "&"
+		}
 
-//         return result;
-//     }
+		params += key
 
-//     /*
-//     Resolves Couchbase connection URI from connection and credential parameters.
-//
-//     - correlationId     (optional) transaction id to trace execution through call chain.
-//     - callback 			callback function that receives resolved URI or error.
-//     */
-//     func (c*CouchbaseConnectionResolver) resolve(correlationId: string, callback: (err: any, connection: CouchbaseConnectionParams) => void) {
-//         let connections: ConnectionParams[];
-//         let credential: CredentialParams;
+		value := options.GetAsString(key)
+		if value != "" {
+			params += "=" + value
+		}
+	}
+	if len(params) > 0 {
+		params = "?" + params
+	}
 
-//         async.parallel([
-//             (callback) => {
-//                 c.ConnectionResolver.resolveAll(correlationId, (err: any, result: ConnectionParams[]) => {
-//                     connections = result;
+	// Compose uri
+	result.Uri = "couchbase://" + hosts + database + params
 
-//                     // Validate connections
-//                     if (err == null)
-//                         err = c.validateConnections(correlationId, connections);
+	return result
+}
 
-//                     callback(err);
-//                 });
-//             },
-//             (callback) => {
-//                 c.CredentialResolver.lookup(correlationId, (err: any, result: CredentialParams) => {
-//                     credential = result;
+/*
+   Resolves Couchbase connection URI from connection and credential parameters.
+   Parameters:
+   - correlationId     (optional) transaction id to trace execution through call chain.
+   - callback 			callback function that receives resolved URI or error.
+*/
+func (c *CouchbaseConnectionResolver) Resolve(correlationId string) (connection *CouchbaseConnectionParams, err error) {
+	var connections []*ccon.ConnectionParams
+	var credential *auth.CredentialParams
+	var errCred, errConn error
 
-//                     // Credentials are not validated right now
+	var wg sync.WaitGroup
 
-//                     callback(err);
-//                 });
-//             }
-//         ], (err) => {
-//             if (err)
-//                 callback(err, null);
-//             else {
-//                 let connection = c.composeConnection(connections, credential);
-//                 callback(null, connection);
-//             }
-//         });
-//     }
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		connections, errConn = c.ConnectionResolver.ResolveAll(correlationId)
+		//Validate connections
+		if errConn == nil {
+			errConn = c.validateConnections(correlationId, connections)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		credential, errCred = c.CredentialResolver.Lookup(correlationId)
+		// Credentials are not validated right now
+	}()
+	wg.Wait()
 
-// }
+	if errConn != nil {
+		return nil, errConn
+	}
+	if errCred != nil {
+		return nil, errCred
+	}
+	connection = c.composeConnection(connections, credential)
+	return connection, nil
+}

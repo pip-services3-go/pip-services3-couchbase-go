@@ -1,6 +1,8 @@
 package persistence
 
 import (
+	"reflect"
+
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cerr "github.com/pip-services3-go/pip-services3-commons-go/errors"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
@@ -102,12 +104,14 @@ type CouchbasePersistence struct {
 	//The Couchbase bucket object.
 	Bucket *gocb.Bucket
 	//The Couchbase N1qlQuery object.
-	Query *gocb.N1qlQuery
+	//Query *gocb.N1qlQuery
+
+	Prototype reflect.Type
 }
 
 //    Creates a new instance of the persistence component.
 //    - bucket    (optional) a bucket name.
-func NewCouchbasePersistence(bucket string) *CouchbasePersistence {
+func NewCouchbasePersistence(proto reflect.Type, bucket string) *CouchbasePersistence {
 	cp := CouchbasePersistence{}
 	cp.defaultConfig = cconf.NewConfigParamsFromTuples(
 		"bucket", nil,
@@ -128,6 +132,7 @@ func NewCouchbasePersistence(bucket string) *CouchbasePersistence {
 
 	cp.Options = cconf.NewEmptyConfigParams()
 	cp.BucketName = bucket
+	cp.Prototype = proto
 	return &cp
 }
 
@@ -207,7 +212,6 @@ func (c *CouchbasePersistence) IsOpen() bool {
 // Opens the component.
 // - correlationId 	(optional) transaction id to trace execution through call chain.
 // - callback 			callback function that receives error or nil no errors occured.
-
 func (c *CouchbasePersistence) Open(correlationId string) (err error) {
 	if c.opened {
 		return nil
@@ -238,7 +242,7 @@ func (c *CouchbasePersistence) Open(correlationId string) (err error) {
 	c.Cluster = c.Connection.GetConnection()
 	c.Bucket = c.Connection.GetBucket()
 	c.BucketName = c.Connection.GetBucketName()
-	c.Query = gocb.NewN1qlQuery("")
+	//c.Query = gocb.NewN1qlQuery("")
 	c.opened = true
 
 	return nil
@@ -263,7 +267,7 @@ func (c *CouchbasePersistence) Close(correlationId string) (err error) {
 	c.opened = false
 	c.Cluster = nil
 	c.Bucket = nil
-	c.Query = nil
+	//c.Query = nil
 	return err
 }
 

@@ -143,7 +143,7 @@ func (c *CouchbaseConnectionResolver) composeConnection(connections []*ccon.Conn
 			hosts += ","
 		}
 		if port > 0 {
-			host += host + ":" + strconv.FormatInt(int64(port), 10)
+			host = host + ":" + strconv.FormatInt(int64(port), 10)
 		}
 		hosts += host
 	}

@@ -1,4 +1,4 @@
-package test_persistence
+package test_fixture
 
 import cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 

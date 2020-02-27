@@ -1,9 +1,10 @@
-package test_persistence
+package test_fixture
 
 import (
+	"testing"
+
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type DummyPersistenceFixture struct {
@@ -14,7 +15,7 @@ type DummyPersistenceFixture struct {
 
 func NewDummyPersistenceFixture(persistence IDummyPersistence) *DummyPersistenceFixture {
 	c := DummyPersistenceFixture{}
-	c.dummy1 = Dummy{Id: "", Key: "Key 11", Content: "Content 1"}
+	c.dummy1 = Dummy{Id: "", Key: "Key1", Content: "Content 1"}
 	c.dummy2 = Dummy{Id: "", Key: "Key 2", Content: "Content 2"}
 	c.persistence = persistence
 	return &c
@@ -160,5 +161,24 @@ func (c *DummyPersistenceFixture) TestBatchOperations(t *testing.T) {
 	}
 	assert.NotNil(t, items)
 	assert.Len(t, items, 0)
+
+}
+
+func (c *DummyPersistenceFixture) TestPaging(t *testing.T) {
+
+	// Create one dummy
+	_, err := c.persistence.Create("", c.dummy1)
+	assert.Nil(t, err)
+
+	page, err := c.persistence.GetPageByFilter(
+		"",
+		cdata.NewEmptyFilterParams(),
+		cdata.NewPagingParams(0, 100, true))
+
+	assert.Nil(t, err)
+
+	assert.NotNil(t, page)
+	assert.Len(t, page.Data, 1)
+	assert.Equal(t, *page.Total, int64(1))
 
 }

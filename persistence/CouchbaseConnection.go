@@ -61,7 +61,8 @@ type CouchbaseConnection struct {
 	//The Couchbase bucket name.
 	BucketName string
 	//The Couchbase bucket object.
-	Bucket *gocb.Bucket
+	Bucket        *gocb.Bucket
+	Authenticator gocb.PasswordAuthenticator
 }
 
 /*
@@ -137,16 +138,17 @@ func (c *CouchbaseConnection) Open(correlationId string) (err error) {
 
 	c.Logger.Debug(correlationId, "Connecting to couchbase")
 
-	conn, conErr := gocb.Connect(connection.Uri)
+	cluster, conErr := gocb.Connect(connection.Uri)
 	if conErr != nil {
 		return conErr
 	}
-	c.Connection = conn
+	c.Connection = cluster
+	c.Authenticator = gocb.PasswordAuthenticator{
+		Username: connection.Username,
+		Password: connection.Password,
+	}
 	if connection.Username != "" {
-		c.Connection.Authenticate(gocb.PasswordAuthenticator{
-			Username: connection.Username,
-			Password: connection.Password,
-		})
+		c.Connection.Authenticate(c.Authenticator)
 	}
 	err = nil
 	wg := sync.WaitGroup{}
@@ -173,12 +175,16 @@ func (c *CouchbaseConnection) Open(correlationId string) (err error) {
 				break
 			}
 			options := gocb.BucketSettings{
-				Name:         c.BucketName,
-				Type:         bucketType,
-				Quota:        int(c.Options.GetAsLongWithDefault("ram_quota", 100)),
-				FlushEnabled: c.Options.GetAsBooleanWithDefault("flush_enabled", true),
+				Name:          c.BucketName,
+				Password:      "",
+				IndexReplicas: true,
+				Replicas:      1,
+				Type:          bucketType,
+				Quota:         int(c.Options.GetAsLongWithDefault("ram_quota", 100)),
+				FlushEnabled:  c.Options.GetAsBooleanWithDefault("flush_enabled", true),
 			}
-			crtErr := c.Connection.Manager("", "").InsertBucket(&options)
+
+			crtErr := c.Connection.Manager(connection.Username, connection.Password).InsertBucket(&options)
 			if crtErr != nil {
 				err = crtErr
 				return

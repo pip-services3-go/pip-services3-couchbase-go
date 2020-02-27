@@ -1,9 +1,10 @@
-package test_persistence
+package test_fixture
 
 import (
+	"testing"
+
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 type DummyMapPersistenceFixture struct {
@@ -14,7 +15,7 @@ type DummyMapPersistenceFixture struct {
 
 func NewDummyMapPersistenceFixture(persistence IDummyMapPersistence) *DummyMapPersistenceFixture {
 	c := DummyMapPersistenceFixture{}
-	c.dummy1 = map[string]interface{}{"Id": "", "key": "Key 11", "content": "Content 1"}
+	c.dummy1 = map[string]interface{}{"Id": "", "key": "Key1", "content": "Content 1"}
 	c.dummy2 = map[string]interface{}{"Id": "", "key": "Key 2", "content": "Content 2"}
 	c.persistence = persistence
 	return &c
@@ -159,5 +160,24 @@ func (c *DummyMapPersistenceFixture) TestBatchOperations(t *testing.T) {
 	}
 	assert.NotNil(t, items)
 	assert.Len(t, items, 0)
+
+}
+
+func (c *DummyMapPersistenceFixture) TestPaging(t *testing.T) {
+
+	// Create one dummy
+	_, err := c.persistence.Create("", c.dummy1)
+	assert.Nil(t, err)
+
+	page, err := c.persistence.GetPageByFilter(
+		"",
+		cdata.NewEmptyFilterParams(),
+		cdata.NewPagingParams(0, 100, true))
+
+	assert.Nil(t, err)
+
+	assert.NotNil(t, page)
+	assert.Len(t, page.Data, 1)
+	assert.Equal(t, *page.Total, int64(1))
 
 }

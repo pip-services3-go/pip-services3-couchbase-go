@@ -142,7 +142,7 @@ func (c *CouchbaseConnectionResolver) composeConnection(connections []*ccon.Conn
 		if len(hosts) > 0 {
 			hosts += ","
 		}
-		if port > 0 {
+		if port > 0 && port != 8091 {
 			host = host + ":" + strconv.FormatInt(int64(port), 10)
 		}
 		hosts += host

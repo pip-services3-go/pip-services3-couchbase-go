@@ -1,7 +1,7 @@
-package test_persistence
+package test_fixture
 
 type Dummy struct {
-	Id      string `bson:"_id" json:"id"`
-	Key     string `bson:"key" json:"key"`
-	Content string `bson:"content" json:"content"`
+	Id      string `json:"id"`
+	Key     string `json:"key"`
+	Content string `json:"content"`
 }

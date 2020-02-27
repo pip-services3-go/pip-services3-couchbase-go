@@ -1,4 +1,4 @@
-package test_persistence
+package test_fixture
 
 type DummyPage struct {
 	Total *int64  `bson:"total" json:"total"`

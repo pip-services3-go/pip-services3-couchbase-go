@@ -1,5 +1,5 @@
 {
-  "name": "pip-services3-mongodb-go",
+  "name": "pip-services3-couchbase-go",
   "registry": "pip-services",
   "version": "3.0.0",
   "build": null

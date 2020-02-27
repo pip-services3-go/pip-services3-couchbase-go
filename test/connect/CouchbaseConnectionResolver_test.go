@@ -18,7 +18,7 @@ func TestCouchbaseConnectionResolver(t *testing.T) {
 func SingleConnection(t *testing.T) {
 	config := cconf.NewConfigParamsFromTuples(
 		"connection.host", "localhost",
-		"connection.port", "8091",
+		"connection.port", "8092",
 		"connection.database", "test",
 	)
 
@@ -27,7 +27,7 @@ func SingleConnection(t *testing.T) {
 	connection, err := resolver.Resolve("")
 	assert.Nil(t, err)
 	assert.NotNil(t, connection)
-	assert.Equal(t, "couchbase://localhost:8091/test", connection.Uri)
+	assert.Equal(t, "couchbase://localhost:8092/test", connection.Uri)
 	assert.Equal(t, connection.Username, "")
 	assert.Equal(t, connection.Password, "")
 
@@ -36,10 +36,10 @@ func SingleConnection(t *testing.T) {
 func MultipleConnections(t *testing.T) {
 	config := cconf.NewConfigParamsFromTuples(
 		"connections.1.host", "host1",
-		"connections.1.port", "8091",
+		"connections.1.port", "8092",
 		"connections.1.database", "test",
 		"connections.2.host", "host2",
-		"connections.2.port", "8091",
+		"connections.2.port", "8092",
 		"connections.2.database", "test",
 	)
 
@@ -48,7 +48,7 @@ func MultipleConnections(t *testing.T) {
 	connection, err := resolver.Resolve("")
 	assert.Nil(t, err)
 	assert.NotNil(t, connection)
-	assert.Equal(t, "couchbase://host1:8091,host2:8091/test", connection.Uri)
+	assert.Equal(t, "couchbase://host1:8092,host2:8092/test", connection.Uri)
 	assert.Equal(t, connection.Username, "")
 	assert.Equal(t, connection.Password, "")
 
@@ -57,7 +57,7 @@ func MultipleConnections(t *testing.T) {
 func ConnectionCredentials(t *testing.T) {
 	config := cconf.NewConfigParamsFromTuples(
 		"connection.host", "localhost",
-		"connection.port", "8091",
+		"connection.port", "8092",
 		"connection.database", "test",
 		"credential.username", "admin",
 		"credential.password", "password123",
@@ -68,7 +68,7 @@ func ConnectionCredentials(t *testing.T) {
 	connection, err := resolver.Resolve("")
 	assert.Nil(t, err)
 	assert.NotNil(t, connection)
-	assert.Equal(t, "couchbase://localhost:8091/test", connection.Uri)
+	assert.Equal(t, "couchbase://localhost:8092/test", connection.Uri)
 	assert.Equal(t, "admin", connection.Username)
 	assert.Equal(t, "password123", connection.Password)
 

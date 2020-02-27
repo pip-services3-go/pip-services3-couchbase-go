@@ -242,7 +242,6 @@ func (c *CouchbasePersistence) Open(correlationId string) (err error) {
 	c.Cluster = c.Connection.GetConnection()
 	c.Bucket = c.Connection.GetBucket()
 	c.BucketName = c.Connection.GetBucketName()
-	//c.Query = gocb.NewN1qlQuery("")
 	c.opened = true
 
 	return nil
@@ -267,7 +266,6 @@ func (c *CouchbasePersistence) Close(correlationId string) (err error) {
 	c.opened = false
 	c.Cluster = nil
 	c.Bucket = nil
-	//c.Query = nil
 	return err
 }
 
@@ -280,7 +278,7 @@ func (c *CouchbasePersistence) Clear(correlationId string) (err error) {
 		return cerr.NewError("Bucket name is not defined")
 	}
 
-	flushErr := c.Bucket.Manager("", "").Flush()
+	flushErr := c.Bucket.Manager(c.Connection.Authenticator.Username, c.Connection.Authenticator.Password).Flush()
 	if flushErr != nil {
 		return cerr.NewConnectionError(correlationId, "FLUSH_FAILED", "Couchbase bucket flush failed").
 			WithCause(err)

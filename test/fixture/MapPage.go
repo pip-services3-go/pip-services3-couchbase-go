@@ -1,4 +1,4 @@
-package test_persistence
+package test_fixture
 
 type MapPage struct {
 	Total *int64                   `bson:"total" json:"total"`

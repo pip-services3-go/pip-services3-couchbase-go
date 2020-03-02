@@ -14,14 +14,13 @@ import (
 )
 
 /*
-Couchbase connection using plain couchbase driver.
-
+CouchbaseConnection it is couchbase connection using plain couchbase driver.
 This is the most basic persistence component that is only
 able to store data items of any type. Specific CRUD operations
 over the data items must be implemented in child classes by
-accessing c._collection or c._model properties.
+accessing c.Connection properties.
 
- Configuration parameters
+Configuration parameters:
 
 - bucket:                      (optional) Couchbase bucket name
 - connection(s):
@@ -39,15 +38,13 @@ accessing c._collection or c._model properties.
   - flush_enabled:             (optional) bucket flush enabled (default: false)
   - bucket_type:               (optional) bucket type (default: couchbase)
   - ram_quota:                 (optional) RAM quota in MB (default: 100)
- *\
- References
 
-- \*:logger:\*:\*:1.0           (optional) ILogger components to pass log messages
-- \*:discovery:\*:\*:1.0        (optional)IDiscovery services
-- \*:credential-store:\*:\*:1.0 (optional) Credential stores to resolve credentials
+ References:
+
+- *:logger:*:*:1.0           		(optional) ILogger components to pass log messages
+- *:discovery:*:*:1.0        		(optional) IDiscovery services
+- *:credential-store:\*:\*:1.0 		(optional) Credential stores to resolve credentials
 */
-// IReferenceable, IConfigurable, IOpenable
-
 type CouchbaseConnection struct {
 	defaultConfig *cconf.ConfigParams
 	//The logger.
@@ -65,36 +62,31 @@ type CouchbaseConnection struct {
 	Authenticator gocb.PasswordAuthenticator
 }
 
-/*
-   Creates a new instance of the connection component.
-   - bucketName the name of couchbase bucket
-*/
+// NewCouchbaseConnection are creates a new instance of the connection component.
+// Parameters:
+//    - bucketName the name of couchbase bucket
 func NewCouchbaseConnection(bucketName string) *CouchbaseConnection {
-	cc := CouchbaseConnection{}
-	cc.BucketName = bucketName
-	cc.defaultConfig = cconf.NewConfigParamsFromTuples(
+	c := CouchbaseConnection{}
+	c.BucketName = bucketName
+	c.defaultConfig = cconf.NewConfigParamsFromTuples(
 		"bucket", nil,
-
 		// connections.*
 		// credential.*
-
 		"options.auto_create", false,
 		"options.auto_index", true,
 		"options.flush_enabled", true,
 		"options.bucket_type", "couchbase",
 		"options.ram_quota", 100,
 	)
-	cc.Logger = clog.NewCompositeLogger()
-	cc.ConnectionResolver = couchcon.NewCouchbaseConnectionResolver()
-	cc.Options = cconf.NewEmptyConfigParams()
-	return &cc
+	c.Logger = clog.NewCompositeLogger()
+	c.ConnectionResolver = couchcon.NewCouchbaseConnectionResolver()
+	c.Options = cconf.NewEmptyConfigParams()
+	return &c
 }
 
-/*
-   Configures component by passing configuration parameters.
-
-   - config    configuration parameters to be set.
-*/
+// Configure are configures component by passing configuration parameters.
+// Parameters:
+//    - config    configuration parameters to be set.
 func (c *CouchbaseConnection) Configure(config *cconf.ConfigParams) {
 	config = config.SetDefaults(c.defaultConfig)
 	c.ConnectionResolver.Configure(config)
@@ -102,32 +94,25 @@ func (c *CouchbaseConnection) Configure(config *cconf.ConfigParams) {
 	c.Options = c.Options.Override(config.GetSection("options"))
 }
 
-/*
-	Sets references to dependent components.
-
-	- references 	references to locate the component dependencies.
-*/
+// SetReferences are sets references to dependent components.
+// Parameters:
+// 	- references 	references to locate the component dependencies.
 func (c *CouchbaseConnection) SetReferences(references cref.IReferences) {
 	c.Logger.SetReferences(references)
 	c.ConnectionResolver.SetReferences(references)
 }
 
-/*
-	Checks if the component is opened.
-
-	Retrun true if the component has been opened and false otherwise.
-*/
+// IsOpen method are checks if the component is opened.
+// Retrun true if the component has been opened and false otherwise.
 func (c *CouchbaseConnection) IsOpen() bool {
-	// return c.Connection.readyState == 1;
 	return c.Connection != nil
 }
 
-/*
-	Opens the component.
-
-	- correlationId 	(optional) transaction id to trace execution through call chain.
-    - callback 			callback function that receives error or null no errors occured.
-*/
+// Open method are opens the component.
+// Parameters:
+// 	 - correlationId 	(optional) transaction id to trace execution through call chain.
+// Returns: error
+// error or nil no errors occured.
 func (c *CouchbaseConnection) Open(correlationId string) (err error) {
 
 	connection, resErr := c.ConnectionResolver.Resolve(correlationId)
@@ -253,12 +238,11 @@ func (c *CouchbaseConnection) Open(correlationId string) (err error) {
 	return nil
 }
 
-/*
-	Closes component and frees used resources.
-	 *
-	- correlationId 	(optional) transaction id to trace execution through call chain.
-    - callback 			callback function that receives error or null no errors occured.
-*/
+// Closes component and frees used resources.
+// Parameters:
+// 	 - correlationId 	(optional) transaction id to trace execution through call chain.
+// Returns: error
+// error or null no errors occured.
 func (c *CouchbaseConnection) Close(correlationId string) (err error) {
 	if c.Bucket != nil {
 		c.Bucket.Close()
@@ -269,14 +253,17 @@ func (c *CouchbaseConnection) Close(correlationId string) (err error) {
 	return nil
 }
 
+// GetConnection method are return opened connection
 func (c *CouchbaseConnection) GetConnection() *gocb.Cluster {
 	return c.Connection
 }
 
+// GetBucket method are returned opened bucket
 func (c *CouchbaseConnection) GetBucket() *gocb.Bucket {
 	return c.Bucket
 }
 
+// GetBucketName method are returned bucket name
 func (c *CouchbaseConnection) GetBucketName() string {
 	return c.BucketName
 }

@@ -1,30 +1,29 @@
 package build
 
-// import (
+import (
+	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
+	cbuild "github.com/pip-services3-go/pip-services3-components-go/build"
+	cbpersist "github.com/pip-services3-go/pip-services3-couchbase-go/persistence"
+)
 
-// )
+/*
+Creates Couchbase components by their descriptors.
+See:  Factory
+See:  CouchbaseConnection
+*/
+type DefaultCouchbaseFactory struct {
+	*cbuild.Factory
+	Descriptor                    *cref.Descriptor
+	CouchbaseConnectionDescriptor *cref.Descriptor
+}
 
-// /** @module build */
-// import { Factory } from 'pip-services3-components-node';
-// import { Descriptor } from 'pip-services3-commons-node';
-
-// import { CouchbaseConnection } from '../persistence/CouchbaseConnection';
-
-// /**
-//  * Creates Couchbase components by their descriptors.
-//  *
-//  * @see [[https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/classes/build.factory.html Factory]]
-//  * @see [[CouchbaseConnection]]
-//  */
-// export class DefaultCouchbaseFactory extends Factory {
-// 	public static readonly Descriptor: Descriptor = new Descriptor("pip-services", "factory", "rpc", "default", "1.0");
-//     public static readonly CouchbaseConnectionDescriptor: Descriptor = new Descriptor("pip-services", "connection", "couchbase", "*", "1.0");
-
-//     /**
-// 	 * Create a new instance of the factory.
-// 	 */
-//     public constructor() {
-//         super();
-//         this.registerAsType(DefaultCouchbaseFactory.CouchbaseConnectionDescriptor, CouchbaseConnection);
-//     }
-// }
+// NewDefaultCouchbaseFactory method are create a new instance of the factory.
+func NewDefaultCouchbaseFactory() *DefaultCouchbaseFactory {
+	c := DefaultCouchbaseFactory{
+		Descriptor:                    cref.NewDescriptor("pip-services", "factory", "rpc", "default", "1.0"),
+		CouchbaseConnectionDescriptor: cref.NewDescriptor("pip-services", "connection", "couchbase", "*", "1.0"),
+		Factory:                       cbuild.NewFactory(),
+	}
+	c.RegisterType(c.CouchbaseConnectionDescriptor, cbpersist.NewCouchbaseConnection)
+	return &c
+}

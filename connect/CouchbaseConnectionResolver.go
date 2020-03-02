@@ -14,42 +14,38 @@ import (
 )
 
 /*
-Helper class that resolves Couchbase connection and credential parameters,
+CouchbaseConnectionResolver helper class that resolves Couchbase connection and credential parameters,
 validates them and generates a connection URI.
 
 It is able to process multiple connections to Couchbase cluster nodes.
 
-  Configuration parameters
+Configuration parameters:
 
 - connection(s):
-  - discovery_key:               (optional) a key to retrieve the connection from https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/interfaces/connect.idiscovery.html IDiscovery
+  - discovery_key:               (optional) a key to retrieve the connection from IDiscovery
   - host:                        host name or IP address
   - port:                        port number (default: 27017)
   - database:                    database (bucket) name
   - uri:                         resource URI or connection string with all parameters in it
 - credential(s):
-  - store_key:                   (optional) a key to retrieve the credentials from https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/interfaces/auth.icredentialstore.html ICredentialStore
+  - store_key:                   (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
   - username:                    user name
   - password:                    user password
 
- References
+References:
 
-- *:discovery:\*:\*:1.0             (optional) https://rawgit.com/pip-services-node/pip-services3-components-node/master/doc/api/interfaces/connect.idiscovery.html IDiscovery services
-- *:credential-store:\*:\*:1.0      (optional) Credential stores to resolve credentials
+- *:discovery:*:*:1.0             (optional) IDiscovery services
+- *:credential-store:*:*:1.0      (optional) Credential stores to resolve credentials
 */
-//implements IReferenceable, IConfigurable
-
 type CouchbaseConnectionResolver struct {
-	/*
-	   The connections resolver.
-	*/
+	//The connections resolver.
 	ConnectionResolver *ccon.ConnectionResolver
-	/*
-	   The credentials resolver.
-	*/
+	//The credentials resolver.
 	CredentialResolver *cauth.CredentialResolver
 }
 
+// NewCouchbaseConnectionResolver method creates new instance of CouchbaseConnectionResolver
+// Retruns *CouchbaseConnectionResolver
 func NewCouchbaseConnectionResolver() *CouchbaseConnectionResolver {
 	ccr := CouchbaseConnectionResolver{}
 	ccr.ConnectionResolver = ccon.NewEmptyConnectionResolver()
@@ -57,21 +53,16 @@ func NewCouchbaseConnectionResolver() *CouchbaseConnectionResolver {
 	return &ccr
 }
 
-/*
-   Configures component by passing configuration parameters.
-
-   - config    configuration parameters to be set.
-*/
+// Configures component by passing configuration parameters.
+// Parameters:
+//    - config    configuration parameters to be set.
 func (c *CouchbaseConnectionResolver) Configure(config *cconf.ConfigParams) {
 	c.ConnectionResolver.Configure(config)
 	c.CredentialResolver.Configure(config)
 }
 
-/*
-	Sets references to dependent components.
-
-	- references 	references to locate the component dependencies.
-*/
+// Sets references to dependent components.
+// 	- references 	references to locate the component dependencies.
 func (c *CouchbaseConnectionResolver) SetReferences(references cref.IReferences) {
 	c.ConnectionResolver.SetReferences(references)
 	c.CredentialResolver.SetReferences(references)
@@ -96,7 +87,6 @@ func (c *CouchbaseConnectionResolver) validateConnection(correlationId string, c
 	// if database == ""{
 	//     return cerr.NewConfigError(correlationId, "NO_DATABASE", "Connection database is not set");
 	// }
-
 	return nil
 }
 
@@ -111,7 +101,6 @@ func (c *CouchbaseConnectionResolver) validateConnections(correlationId string, 
 			return err
 		}
 	}
-
 	return nil
 }
 
@@ -196,19 +185,16 @@ func (c *CouchbaseConnectionResolver) composeConnection(connections []*ccon.Conn
 	if len(params) > 0 {
 		params = "?" + params
 	}
-
 	// Compose uri
 	result.Uri = "couchbase://" + hosts + database + params
-
 	return result
 }
 
-/*
-   Resolves Couchbase connection URI from connection and credential parameters.
-   Parameters:
-   - correlationId     (optional) transaction id to trace execution through call chain.
-   - callback 			callback function that receives resolved URI or error.
-*/
+// Resolves Couchbase connection URI from connection and credential parameters.
+// Parameters:
+//    - correlationId     (optional) transaction id to trace execution through call chain.
+// Returns: connection *CouchbaseConnectionParams, err error
+// resolved connection params or error.
 func (c *CouchbaseConnectionResolver) Resolve(correlationId string) (connection *CouchbaseConnectionParams, err error) {
 	var connections []*ccon.ConnectionParams
 	var credential *auth.CredentialParams

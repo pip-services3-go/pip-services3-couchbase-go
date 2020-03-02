@@ -8,3 +8,6 @@ run: install
 
 test:
 	@go test -v ./test/...
+
+bench:
+	@go test -bench=. -benchmem ./test/...

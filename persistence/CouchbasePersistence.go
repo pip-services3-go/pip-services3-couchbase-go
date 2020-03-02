@@ -12,16 +12,16 @@ import (
 )
 
 /*
-Abstract persistence component that stores data in Couchbase
+CouchbasePersistence abstract persistence component that stores data in Couchbase
 and is based using Couchbaseose object relational mapping.
- *
+
 This is the most basic persistence component that is only
 able to store data items of interface{} type. Specific CRUD operations
 over the data items must be implemented in child classes by
 accessing c._collection or c._model properties.
- *
- Configuration parameters
- *
+
+Configuration parameters:
+
 - bucket:                      (optional) Couchbase bucket name
 - connection(s):
   - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery
@@ -38,51 +38,80 @@ accessing c._collection or c._model properties.
   - flush_enabled:             (optional) bucket flush enabled (default: false)
   - bucket_type:               (optional) bucket type (default: couchbase)
   - ram_quota:                 (optional) RAM quota in MB (default: 100)
- *
- References
- *
-- \*:logger:\*:\*:1.0           (optional) ILogger components to pass log messages
-- \*:discovery:\*:\*:1.0        (optional) IDiscovery services
-- \*:credential-store:\*:\*:1.0 (optional) Credential stores to resolve credentials
 
- Example
+ References:
 
-    class MyCouchbasePersistence extends CouchbasePersistence<MyData> {
+- *:logger:*:*:1.0           (optional) ILogger components to pass log messages
+- *:discovery:*:*:1.0        (optional) IDiscovery services
+- *:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials
 
-      func (c* CouchbasePersistence) constructor() {
-          base("mydata", "mycollection", new MyDataCouchbaseSchema());
+Example:
+
+	type MyCouchbasePersistence struct {
+	  *CouchbasePersistence
+	}
+
+    func NewMyCouchbasePersistence() *MyCouchbasePersistence {
+		c := MyCouchbasePersistence{}
+		c.CouchbasePersistence = NewCouchbasePersistence(reflect.TypeOf(MyData{}), "mycollection");
+		return &c;
     }
 
-    func (c* CouchbasePersistence) getByName(correlationId: string, name: string, callback: (err, item) => void) {
-        let criteria = { name: name };
-        c._model.findOne(criteria, callback);
-    });
+    func (c *MyCouchbasePersistence) GetOneById(correlationId string, id interface{}) (item interface{}, err error) {
+		objectId := c.GenerateBucketId(id)
 
-    func (c* CouchbasePersistence) set(correlatonId: string, item: MyData, callback: (err) => void) {
-        let criteria = { name: item.name };
-        let options = { upsert: true, new: true };
-        c._model.findOneAndUpdate(criteria, item, options, callback);
-    }
+		buf := make(map[string]interface{}, 0)
+		_, getErr := c.Bucket.Get(objectId, &buf)
+		if getErr != nil {
+			// Ignore "Key does not exist on the server" error
+			if getErr == gocb.ErrKeyNotFound {
+				return nil, nil
+			}
+			return nil, getErr
+		}
+		c.Logger.Trace(correlationId, "Retrieved from %s by id = %s", c.BucketName, objectId)
+		item = c.ConvertFromMap(buf)
+		return item, nil
+	}
 
-    }
+    func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interface{}) (result interface{}, err error) {
+		if item == nil {
+			return nil, nil
+		}
+		var newItem interface{}
+		newItem = cmpersist.CloneObject(item)
+		// Assign unique id if not exist
+		cmpersist.GenerateObjectId(&newItem)
+		id := cmpersist.GetObjectId(newItem)
+		setItem := c.ConvertFromPublic(&newItem)
+		objectId := c.GenerateBucketId(id)
 
-    let persistence = new MyCouchbasePersistence();
-    persistence.configure(ConfigParams.fromTuples(
+		_, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
+
+		if upsertErr != nil {
+			return nil, upsertErr
+		}
+
+		c.Logger.Trace(correlationId, "Set in %s with id = %s", c.BucketName, id)
+		c.ConvertToPublic(&newItem)
+		return c.GetPtrIfNeed(newItem), nil
+	}
+
+    persistence := NewMyCouchbasePersistence();
+    persistence.Configure(cconf.NewConfigParamsFromTuples(
         "host", "localhost",
-        "port", 27017
+        "port", 27017,
     ));
 
-    persitence.open("123", (err) => {
+    persitence.Open("123")
          ...
-    });
 
-    persistence.set("123", { name: "ABC" }, (err) => {
-        persistence.getByName("123", "ABC", (err, item) => {
-            console.log(item);                   // Result: { name: "ABC" }
-        });
-    });
+	setItem, err := persistence.Set("123", MyData{ name: "ABC" })
+	if setErr=== nil {
+	 	item, err := persistence.GetOneById("123", setItem.Id)
+        fmt.Println(item);                   // Result: { name: "ABC", Id:"..." }
+    }
 */
-// implements IReferenceable, IUnreferenceable, IConfigurable, IOpenable, ICleanable
 type CouchbasePersistence struct {
 	defaultConfig   *cconf.ConfigParams
 	config          *cconf.ConfigParams
@@ -103,23 +132,19 @@ type CouchbasePersistence struct {
 	BucketName string
 	//The Couchbase bucket object.
 	Bucket *gocb.Bucket
-	//The Couchbase N1qlQuery object.
-	//Query *gocb.N1qlQuery
-
+	// Prototype for convert
 	Prototype reflect.Type
 }
 
-//    Creates a new instance of the persistence component.
-//    - bucket    (optional) a bucket name.
+// NewCouchbasePersistence method are creates a new instance of the persistence component.
+// Parameters:
+//    - bucket    a bucket name.
+// Returns:  *CouchbasePersistence pointer on new instance
 func NewCouchbasePersistence(proto reflect.Type, bucket string) *CouchbasePersistence {
 	cp := CouchbasePersistence{}
 	cp.defaultConfig = cconf.NewConfigParamsFromTuples(
 		"bucket", nil,
 		"dependencies.connection", "*:connection:couchbase:*:1.0",
-
-		// connections.*
-		// credential.*
-
 		"options.auto_create", false,
 		"options.auto_index", true,
 		"options.flush_enabled", true,
@@ -129,14 +154,13 @@ func NewCouchbasePersistence(proto reflect.Type, bucket string) *CouchbasePersis
 
 	cp.DependencyResolver = cref.NewDependencyResolverWithParams(cp.defaultConfig, cref.NewEmptyReferences())
 	cp.Logger = clog.NewCompositeLogger()
-
 	cp.Options = cconf.NewEmptyConfigParams()
 	cp.BucketName = bucket
 	cp.Prototype = proto
 	return &cp
 }
 
-//    Configures component by passing configuration parameters.
+// Configure method are configures component by passing configuration parameters.
 // - config    configuration parameters to be set.
 func (c *CouchbasePersistence) Configure(config *cconf.ConfigParams) {
 	config = config.SetDefaults(c.defaultConfig)
@@ -146,15 +170,11 @@ func (c *CouchbasePersistence) Configure(config *cconf.ConfigParams) {
 	c.Options = c.Options.Override(config.GetSection("options"))
 }
 
-/*
-	Sets references to dependent components.
-	 *
-	- references 	references to locate the component dependencies.
-*/
+// SetReferences method are sets references to dependent components.
+// 	- references 	references to locate the component dependencies.
 func (c *CouchbasePersistence) SetReferences(references cref.IReferences) {
 	c.references = references
 	c.Logger.SetReferences(references)
-
 	// Get connection
 	c.DependencyResolver.SetReferences(references)
 	resolve := c.DependencyResolver.GetOneOptional("connection")
@@ -168,8 +188,7 @@ func (c *CouchbasePersistence) SetReferences(references cref.IReferences) {
 	}
 }
 
-//	Unsets (clears) previously set references to dependent components.
-
+// UnsetReferences method is unsets (clears) previously set references to dependent components.
 func (c *CouchbasePersistence) UnsetReferences() {
 	c.Connection = nil
 }
@@ -187,31 +206,16 @@ func (c *CouchbasePersistence) createConnection() *CouchbaseConnection {
 	return connection
 }
 
-// Converts object value from internal to func (c* CouchbasePersistence) format.
-// - value     an object in internal format to convert.
-// Returns converted object in func (c* CouchbasePersistence) format.
-func (c *CouchbasePersistence) convertToPublic(value interface{}) interface{} {
-	// if value && value.toJSON
-	//     value = value.toJSON();
-	return value
-}
-
-// Convert object value from func (c* CouchbasePersistence) to internal format.
-// - value     an object in func (c* CouchbasePersistence) format to convert.
-// Returns converted object in internal format.
-func (c *CouchbasePersistence) convertFromPublic(value interface{}) interface{} {
-	return value
-}
-
-// Checks if the component is opened.
+// IsOpen method are checks if the component is opened.
 // Returns true if the component has been opened and false otherwise.
 func (c *CouchbasePersistence) IsOpen() bool {
 	return c.opened
 }
 
-// Opens the component.
+// Open method are opens the component.
 // - correlationId 	(optional) transaction id to trace execution through call chain.
-// - callback 			callback function that receives error or nil no errors occured.
+// Return: error
+// error or nil no errors occured.
 func (c *CouchbasePersistence) Open(correlationId string) (err error) {
 	if c.opened {
 		return nil
@@ -248,9 +252,10 @@ func (c *CouchbasePersistence) Open(correlationId string) (err error) {
 
 }
 
-// Closes component and frees used resources.
+// Close method are closes component and frees used resources.
 // - correlationId 	(optional) transaction id to trace execution through call chain.
-// - callback 			callback function that receives error or nil no errors occured.
+// Returns: error
+// error or nil no errors occured.
 func (c *CouchbasePersistence) Close(correlationId string) (err error) {
 	if !c.opened {
 		return nil
@@ -269,9 +274,10 @@ func (c *CouchbasePersistence) Close(correlationId string) (err error) {
 	return err
 }
 
-// Clears component state.
+// Clear method are clears component state.
 // - correlationId 	(optional) transaction id to trace execution through call chain.
-// - callback 			callback function that receives error or nil no errors occured.
+// Returns: error
+// error or nil no errors occured.
 func (c *CouchbasePersistence) Clear(correlationId string) (err error) {
 	// Return error if collection is not set
 	if c.BucketName == "" {

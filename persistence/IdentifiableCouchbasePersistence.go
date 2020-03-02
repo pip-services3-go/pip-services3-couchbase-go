@@ -16,20 +16,19 @@ import (
 	gocb "gopkg.in/couchbase/gocb.v1"
 )
 
-// import { runInThisContext } from "vm";
-
 /*
-Abstract persistence component that stores data in Couchbase
+IdentifiableCouchbasePersistence abstract persistence component that stores data in Couchbase
 and implements a number of CRUD operations over data items with unique ids.
 The data items must implement IIdentifiable interface.
 
-In basic scenarios child classes shall only override [[getPageByFilter,
-[[getListByFilter or [[deleteByFilter operations with specific filter function.
+In basic scenarios child classes shall only override GetPageByFilter,
+GetListByFilter or DeleteByFilter operations with specific filter function.
 All other operations can be used out of the box.
 
 In complex scenarios child classes can implement additional operations by
-accessing c._collection and c._model properties.
- Configuration parameters
+accessing c.Bucket properties.
+
+Configuration parameters:
 
 - bucket:                      (optional) Couchbase bucket name
 - collection:                  (optional) Couchbase collection name
@@ -50,76 +49,75 @@ accessing c._collection and c._model properties.
   - max_page_size:             (optional) maximum page size (default: 100)
   - debug:                     (optional) enable debug output (default: false).
 
- References
+References:
 
 - *:logger:*:*:1.0           (optional) ILogger components to pass log messages components to pass log messages
 - *:discovery:*:*:1.0        (optional)  IDiscovery services
 - *:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials
 
- Example
+ Example:
 
-    class MyCouchbasePersistence extends CouchbasePersistence<MyData, string> {
+    type MyCouchbasePersistence struct {
+		 *IdentifiableCouchbasePersistence
+	}
 
-    func (c*IdentifiableCouchbasePersistence) constructor() {
-        base("mybucket", "mydata", new MyDataCouchbaseSchema());
+    func NewMyCouchbasePersistence()*MyCouchbasePersistence {
+		c := MyCouchbasePersistence{}
+		c.IdentifiableCouchbasePersistence = NewIdentifiableCouchbasePersistence(reflect.TypeOf(MyData{}), "mybucket", "mycollection")
+		return &c
     }
 
-    private composeFilter(filter: FilterParams): any {
-        filter = filter || new FilterParams();
-        let criteria = [];
-        let name = filter.getAsnilableString("name");
-        if (name != nil)
-            criteria.push({ name: name });
-        return criteria.length > 0 ? { $and: criteria } : nil;
-    }
+    func (c *MyCouchbasePersistence) GetPageByFilter(correlationId string, filter *cdata.FilterParams, paging *cdata.PagingParams) (page *cbfixture.MyDataPage, err error) {
+		if filter == nil {
+			filter = cdata.NewEmptyFilterParams()
+		}
+		name := filter.GetAsString("name")
+		filterCondition := ""
+		if name != "" {
+			filterCondition += "name='" + name + "'"
+		}
+		tempPage, err := c.IdentifiableCouchbasePersistence.GetPageByFilter(correlationId, filterCondition, paging, "", "")
+		// Convert to MyDataPage
+		dataLen := int64(len(tempPage.Data)) // For full release tempPage and delete this by GC
+		data := make([]cbfixture.MyData, dataLen)
+		for i, v := range tempPage.Data {
+			data[i] = v.(cbfixture.MyData)
+		}
+		page = cbfixture.NewMyDataPage(&dataLen, data)
+		return page, err
+	}
 
-    func (c*IdentifiableCouchbasePersistence) getPageByFilter(correlationId: string, filter: FilterParams, paging: PagingParams,
-        callback: (err: any, page: DataPage<MyData>) => void) {
-        base.getPageByFilter(correlationId, c.composeFilter(filter), paging, nil, nil, callback);
-    }
 
-    }
-
-    let persistence = new MyCouchbasePersistence();
-    persistence.configure(ConfigParams.fromTuples(
+    persistence := NewMyCouchbasePersistence();
+    persistence.Configure(ConfigParams.fromTuples(
         "host", "localhost",
-        "port", 27017
+        "port", 27017,
     ));
 
-    persitence.open("123", (err) => {
+    persitence.Open("123")
         ...
-    });
-
-    persistence.create("123", { id: "1", name: "ABC" }, (err, item) => {
-        persistence.getPageByFilter(
+	persistence.Create("123", MyData{ id: "1", name: "ABC" })
+		...
+    result, err:= persistence.GetPageByFilter(
             "123",
-            FilterParams.fromTuples("name", "ABC"),
-            nil,
-            (err, page) => {
-                console.log(page.data);          // Result: { id: "1", name: "ABC" }
+            NewFilterParamsFromTuples("name", "ABC"),
+            nil)
 
-                persistence.deleteById("123", "1", (err, item) => {
-                   ...
-                });
-            }
-        )
-    });
+    fmt.Println(page.data);          // Result: { id: "1", name: "ABC" }
+	persistence.DeleteById("123", "1")
+        ...
 */
-// <T extends IIdentifiable<K>, K> extends
-//  implements IWriter<T, K>, IGetter<T, K>, ISetter<T>
-
 type IdentifiableCouchbasePersistence struct {
 	*CouchbasePersistence
-
 	MaxPageSize    int
 	CollectionName string
 }
 
-/*
-   Creates a new instance of the persistence component.
-    *
-   - collection    (optional) a collection name.
-*/
+// NewIdentifiableCouchbasePersistence method are creates a new instance of the persistence component.
+// Parameters:
+//	- proto reflect.Type prototype for properly convert
+//	- bucket string  couchbase bucket name
+//  - collection    (optional) a collection name.
 func NewIdentifiableCouchbasePersistence(proto reflect.Type, bucket string, collection string) *IdentifiableCouchbasePersistence {
 
 	if bucket == "" {
@@ -129,14 +127,15 @@ func NewIdentifiableCouchbasePersistence(proto reflect.Type, bucket string, coll
 	if collection == "" {
 		panic("Collection name could not be nil")
 	}
-	icp := IdentifiableCouchbasePersistence{}
-	icp.CouchbasePersistence = NewCouchbasePersistence(proto, bucket)
-	icp.MaxPageSize = 100
-	icp.CollectionName = collection
-	return &icp
+	c := IdentifiableCouchbasePersistence{}
+	c.CouchbasePersistence = NewCouchbasePersistence(proto, bucket)
+	c.MaxPageSize = 100
+	c.CollectionName = collection
+	return &c
 }
 
-//  Configures component by passing configuration parameters.
+//  Configure method are configures component by passing configuration parameters.
+// Parameters:
 //  - config    configuration parameters to be set.
 func (c *IdentifiableCouchbasePersistence) Configure(config *cconf.ConfigParams) {
 	c.CouchbasePersistence.Configure(config)
@@ -145,10 +144,10 @@ func (c *IdentifiableCouchbasePersistence) Configure(config *cconf.ConfigParams)
 	c.CollectionName = config.GetAsStringWithDefault("collection", c.CollectionName)
 }
 
-// ConvertFromPublic method help convert object (map) from public view by replaced "Id" to "_id" field
+// ConvertFromPublic method help convert object (map) from public view by added "_c" field with collection name
 // Parameters:
-// 	- item *interface{}
-// 	converted item
+// 	- item *interface{} item for convert
+// Returns: *interface{} converted item
 func (c *IdentifiableCouchbasePersistence) ConvertFromPublic(item *interface{}) *interface{} {
 	var value interface{} = *item
 	if reflect.TypeOf(item).Kind() != reflect.Ptr {
@@ -174,10 +173,10 @@ func (c *IdentifiableCouchbasePersistence) ConvertFromPublic(item *interface{}) 
 	panic("ConvertFromPublic:Error! Item must to be a map[string]interface{} or struct!")
 }
 
-// ConvertToPublic method is convert object (map) to public view by replaced "_id" to "Id" field
+// ConvertToPublic method is convert object (map) to public view by exluded "_c" field
 // Parameters:
-// 	- item *interface{}
-// 	converted item
+// 	- item *interface{}  item for convert
+// Returns: *interface{} converted item
 func (c *IdentifiableCouchbasePersistence) ConvertToPublic(item *interface{}) {
 	var value interface{} = *item
 	if reflect.TypeOf(item).Kind() != reflect.Ptr {
@@ -198,20 +197,18 @@ func (c *IdentifiableCouchbasePersistence) ConvertToPublic(item *interface{}) {
 	panic("ConvertToPublic:Error! Item must to be a map[string]interface{} or struct!")
 }
 
-/*
-   Converts the given object from the public partial format.
-    *
-   - value     the object to convert from the public partial format.
-   Retruns the initial object.
-*/
+// ConvertFromPublicPartial method are converts the given object from the public partial format.
+//    - value     the object to convert from the public partial format.
+// Retruns the initial object.
 func (c *IdentifiableCouchbasePersistence) ConvertFromPublicPartial(value *interface{}) *interface{} {
 	return c.ConvertFromPublic(value)
 }
 
-// Generates unique id for specific collection in the bucket
-// - value a func (c*IdentifiableCouchbasePersistence) unique id.
+// GenerateBucketId method are generates unique id for specific collection in the bucket
+// Parameters:
+// - value a public unique id.
 // Retruns a unique bucket id.
-func (c *IdentifiableCouchbasePersistence) generateBucketId(value interface{}) string {
+func (c *IdentifiableCouchbasePersistence) GenerateBucketId(value interface{}) string {
 	if value == nil {
 		return ""
 	}
@@ -219,31 +216,31 @@ func (c *IdentifiableCouchbasePersistence) generateBucketId(value interface{}) s
 }
 
 // Generates a list of unique ids for specific collection in the bucket
-// - value a func (c*IdentifiableCouchbasePersistence) unique ids.
+// Parameters:
+// - value a public unique ids.
 // Retruns a unique bucket ids.
-func (c *IdentifiableCouchbasePersistence) generateBucketIds(value []interface{}) []string {
+func (c *IdentifiableCouchbasePersistence) GenerateBucketIds(value []interface{}) []string {
 	if value == nil {
 		return nil
 	}
 	ids := make([]string, 0, 1)
 	for _, v := range value {
-		ids = append(ids, c.generateBucketId(v))
+		ids = append(ids, c.GenerateBucketId(v))
 	}
-
 	return ids
 }
 
-// Gets a page of data items retrieved by a given filter and sorted according to sort parameters.
-
+// GetPageByFilter method are gets a page of data items retrieved by a given filter and sorted according to sort parameters.
 // This method shall be called by a public getPageByFilter method from child class that
 // receives FilterParams and converts them into a filter function.
-
+// Parameters:
 // - correlationId     (optional) transaction id to trace execution through call chain.
 // - filter            (optional) a filter query string after WHERE clause
 // - paging            (optional) paging parameters
 // - sort              (optional) sorting string after ORDER BY clause
 // - sel           (optional) projection string after SELECT clause
-// - callback          callback function that receives a data page or error.
+// Returns:  page *cdata.DataPage, err error
+// data page or error.
 func (c *IdentifiableCouchbasePersistence) GetPageByFilter(correlationId string, filter string, paging *cdata.PagingParams,
 	sort string, sel string) (page *cdata.DataPage, err error) {
 
@@ -260,7 +257,6 @@ func (c *IdentifiableCouchbasePersistence) GetPageByFilter(correlationId string,
 	skip := paging.GetSkip(-1)
 	take := paging.GetTake(int64(c.MaxPageSize))
 	pagingEnabled := paging.Total
-
 	collectionFilter := "_c='" + c.CollectionName + "'"
 
 	if filter != "" {
@@ -291,15 +287,12 @@ func (c *IdentifiableCouchbasePersistence) GetPageByFilter(correlationId string,
 	items := make([]interface{}, 0, 0)
 	buf := make(map[string]interface{}, 0)
 	for queryResp.Next(&buf) {
-		docPointer := c.GetProtoPtr()
-		jsonBuf := make([]byte, 0, 0)
+		var item interface{}
 		if selectStatement == "*" {
-			jsonBuf, _ = json.Marshal(buf[c.BucketName])
+			item = c.ConvertFromMap(buf[c.BucketName])
 		} else {
-			jsonBuf, _ = json.Marshal(buf)
+			item = c.ConvertFromMap(buf)
 		}
-		json.Unmarshal(jsonBuf, docPointer.Interface())
-		item := c.GetConvResult(docPointer, c.Prototype)
 		items = append(items, item)
 	}
 	if len(items) > 0 {
@@ -316,15 +309,17 @@ func (c *IdentifiableCouchbasePersistence) GetPageByFilter(correlationId string,
 	return page, nil
 }
 
-// Gets a list of data items retrieved by a given filter and sorted according to sort parameters.
+// GetListByFilter method are gets a list of data items retrieved by a given filter and sorted according to sort parameters.
 // This method shall be called by a public getListByFilter method from child class that
 // receives FilterParams and converts them into a filter function.
+// Parameters:
 // - correlationId    (optional) transaction id to trace execution through call chain.
 // - filter           (optional) a filter JSON object
 // - paging           (optional) paging parameters
 // - sort             (optional) sorting JSON object
 // - select           (optional) projection JSON object
-// - callback         callback function that receives a data list or error.
+// Returns:  items []interface{}, err error
+// data list or error.
 func (c *IdentifiableCouchbasePersistence) GetListByFilter(correlationId string, filter string, sort string, sel string) (items []interface{}, err error) {
 
 	selectStatement := "*"
@@ -349,15 +344,12 @@ func (c *IdentifiableCouchbasePersistence) GetListByFilter(correlationId string,
 	items = make([]interface{}, 0, 0)
 	buf := make(map[string]interface{}, 0)
 	for queryResp.Next(&buf) {
-		docPointer := c.GetProtoPtr()
-		jsonBuf := make([]byte, 0, 0)
+		var item interface{}
 		if selectStatement == "*" {
-			jsonBuf, _ = json.Marshal(buf[c.BucketName])
+			item = c.ConvertFromMap(buf[c.BucketName])
 		} else {
-			jsonBuf, _ = json.Marshal(buf)
+			item = c.ConvertFromMap(buf)
 		}
-		json.Unmarshal(jsonBuf, docPointer.Interface())
-		item := c.GetConvResult(docPointer, c.Prototype)
 		items = append(items, item)
 	}
 	if len(items) > 0 {
@@ -366,20 +358,22 @@ func (c *IdentifiableCouchbasePersistence) GetListByFilter(correlationId string,
 	return items, nil
 }
 
-// Gets a list of data items retrieved by given unique ids.
+// GetListByIds method are gets a list of data items retrieved by given unique ids.
+// Parameters:
 // - correlationId     (optional) transaction id to trace execution through call chain.
 // - ids               ids of data items to be retrieved
-// - callback         callback function that receives a data list or error.
+// Returns:  items []interface{}, err error
+// a data list or error.
 func (c *IdentifiableCouchbasePersistence) GetListByIds(correlationId string, ids []interface{}) (items []interface{}, err error) {
 
 	if len(ids) == 0 {
 		return nil, nil
 	}
-	objectIds := c.generateBucketIds(ids)
+	objectIds := c.GenerateBucketIds(ids)
 	var opItems []gocb.BulkOp
 	for _, id := range objectIds {
-		docPointer := make(map[string]interface{}, 0)
-		opItems = append(opItems, &gocb.GetOp{Key: id, Value: docPointer})
+		mapPointer := make(map[string]interface{}, 0)
+		opItems = append(opItems, &gocb.GetOp{Key: id, Value: mapPointer})
 	}
 	doErr := c.Bucket.Do(opItems)
 	if doErr != nil {
@@ -391,10 +385,8 @@ func (c *IdentifiableCouchbasePersistence) GetListByIds(correlationId string, id
 			continue
 		}
 		buf := opItems[i].(*gocb.GetOp).Value.(map[string]interface{})
-		docPointer := c.GetProtoPtr()
-		jsonBuf, _ := json.Marshal(buf)
-		json.Unmarshal(jsonBuf, docPointer.Interface())
-		item := c.GetConvResult(docPointer, c.Prototype)
+		item := c.ConvertFromMap(buf)
+
 		if item != nil {
 			items = append(items, item)
 		}
@@ -402,13 +394,13 @@ func (c *IdentifiableCouchbasePersistence) GetListByIds(correlationId string, id
 	return items, nil
 }
 
-// Gets a data item by its unique id.
+// GetOneById method are gets a data item by its unique id.
 // - correlationId     (optional) transaction id to trace execution through call chain.
 // - id                an id of data item to be retrieved.
-// - callback          callback function that receives data item or error.
-
+// Returns:  item interface{}, err error
+// data item or error.
 func (c *IdentifiableCouchbasePersistence) GetOneById(correlationId string, id interface{}) (item interface{}, err error) {
-	objectId := c.generateBucketId(id)
+	objectId := c.GenerateBucketId(id)
 
 	buf := make(map[string]interface{}, 0)
 	_, getErr := c.Bucket.Get(objectId, &buf)
@@ -420,27 +412,21 @@ func (c *IdentifiableCouchbasePersistence) GetOneById(correlationId string, id i
 		return nil, getErr
 	}
 	c.Logger.Trace(correlationId, "Retrieved from %s by id = %s", c.BucketName, objectId)
-
-	docPointer := c.GetProtoPtr()
-	jsonBuf, _ := json.Marshal(buf)
-	json.Unmarshal(jsonBuf, docPointer.Interface())
-	item = c.GetConvResult(docPointer, c.Prototype)
-
+	item = c.ConvertFromMap(buf)
 	return item, nil
 }
 
-// Gets a random item from items that match to a given filter.
-
+// GetOneRandom method are gts a random item from items that match to a given filter.
 // This method shall be called by a public getOneRandom method from child class that
 // receives FilterParams and converts them into a filter function.
-
+// Parameters:
 // - correlationId     (optional) transaction id to trace execution through call chain.
 // - filter            (optional) a filter JSON object
-// - callback          callback function that receives a random item or error.
-
+// Returns: item interface{}, err error
+// a random item or error.
 func (c *IdentifiableCouchbasePersistence) GetOneRandom(correlationId string, filter string) (item interface{}, err error) {
-	statement := "SELECT COUNT(*) FROM `" + c.BucketName + "`"
 
+	statement := "SELECT COUNT(*) FROM `" + c.BucketName + "`"
 	// Adjust max item count based on configuration
 	if filter != "" {
 		statement += " WHERE " + filter
@@ -474,21 +460,17 @@ func (c *IdentifiableCouchbasePersistence) GetOneRandom(correlationId string, fi
 	}
 	buf := make(map[string]interface{})
 	queryRes.Next(&buf)
-	docPointer := c.GetProtoPtr()
-	// select *
-	jsonBuf, _ := json.Marshal(buf[c.BucketName])
-
-	json.Unmarshal(jsonBuf, docPointer.Interface())
-	item = c.GetConvResult(docPointer, c.Prototype)
+	item = c.ConvertFromMap(buf)
 	c.Logger.Trace(correlationId, "Retrieved random item from %s", c.BucketName)
-
 	return item, nil
 }
 
-//  Creates a data item.
+// Create method are creates a data item.
+// Parameters:
 //  - correlation_id    (optional) transaction id to trace execution through call chain.
 //  - item              an item to be created.
-//  - callback          (optional) callback function that receives created item or error.
+// Returns:  result interface{}, err error
+// created item or error.
 func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item interface{}) (result interface{}, err error) {
 	if item == nil {
 		return nil, nil
@@ -499,8 +481,7 @@ func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item int
 	cmpersist.GenerateObjectId(&newItem)
 	insertedItem := c.ConvertFromPublic(&newItem)
 	id := cmpersist.GetObjectId(newItem)
-
-	objectId := c.generateBucketId(id)
+	objectId := c.GenerateBucketId(id)
 
 	_, insErr := c.Bucket.Insert(objectId, insertedItem, 0)
 
@@ -508,18 +489,13 @@ func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item int
 		return nil, insErr
 	}
 	c.Logger.Trace(correlationId, "Created in %s with id = %s", c.BucketName, id)
-	c.convertToPublic(&newItem)
-	if c.Prototype.Kind() == reflect.Ptr {
-		newPtr := reflect.New(c.Prototype.Elem())
-		newPtr.Elem().Set(reflect.ValueOf(newItem))
-		return newPtr.Interface(), nil
-	}
-	return newItem, nil
+	c.ConvertToPublic(&newItem)
+	return c.GetPtrIfNeed(newItem), nil
 }
 
-// Sets a data item. If the data item exists it updates it,
+// Set method are sets a data item. If the data item exists it updates it,
 // otherwise it create a new data item.
-
+// Parameters:
 // - correlation_id    (optional) transaction id to trace execution through call chain.
 // - item              a item to be set.
 // - callback          (optional) callback function that receives updated item or error.
@@ -533,7 +509,7 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 	cmpersist.GenerateObjectId(&newItem)
 	id := cmpersist.GetObjectId(newItem)
 	setItem := c.ConvertFromPublic(&newItem)
-	objectId := c.generateBucketId(id)
+	objectId := c.GenerateBucketId(id)
 
 	_, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
 
@@ -542,22 +518,16 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 	}
 
 	c.Logger.Trace(correlationId, "Set in %s with id = %s", c.BucketName, id)
-	c.convertToPublic(&newItem)
-	if c.Prototype.Kind() == reflect.Ptr {
-		newPtr := reflect.New(c.Prototype.Elem())
-		newPtr.Elem().Set(reflect.ValueOf(newItem))
-		return newPtr.Interface(), nil
-	}
-	return newItem, nil
+	c.ConvertToPublic(&newItem)
+	return c.GetPtrIfNeed(newItem), nil
 }
 
-/*
-   Updates a data item.
-    *
-   - correlation_id    (optional) transaction id to trace execution through call chain.
-   - item              an item to be updated.
-   - callback          (optional) callback function that receives updated item or error.
-*/
+// Update method are updates a data item.
+// Parameters:
+//    - correlation_id    (optional) transaction id to trace execution through call chain.
+//    - item              an item to be updated.
+// Returns:  result interface{}, err error
+// updated item or error.
 func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item interface{}) (result interface{}, err error) {
 	var newItem interface{}
 	newItem = cmpersist.CloneObject(item)
@@ -565,7 +535,7 @@ func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item int
 	cmpersist.GenerateObjectId(&newItem)
 	id := cmpersist.GetObjectId(newItem)
 	updateItem := c.ConvertFromPublic(&newItem)
-	objectId := c.generateBucketId(id)
+	objectId := c.GenerateBucketId(id)
 
 	_, repErr := c.Bucket.Replace(objectId, updateItem, 0, 0)
 
@@ -573,28 +543,24 @@ func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item int
 		return nil, repErr
 	}
 	c.Logger.Trace(correlationId, "Updated in %s with id = %s", c.BucketName, id)
-	c.convertToPublic(&newItem)
-	if c.Prototype.Kind() == reflect.Ptr {
-		newPtr := reflect.New(c.Prototype.Elem())
-		newPtr.Elem().Set(reflect.ValueOf(newItem))
-		return newPtr.Interface(), nil
-	}
-	return newItem, nil
+	c.ConvertToPublic(&newItem)
+	return c.GetPtrIfNeed(newItem), nil
 }
 
-// Updates only few selected fields in a data item.
+// UpdatePartially methos are updates only few selected fields in a data item.
+// Parameters:
 // - correlation_id    (optional) transaction id to trace execution through call chain.
 // - id                an id of data item to be updated.
 // - data              a map with fields to be updated.
-// - callback          callback function that receives updated item or error.
-
+// Returns: result interface{}, err error
+// updated item or error.
 func (c *IdentifiableCouchbasePersistence) UpdatePartially(correlationId string, id interface{}, data *cdata.AnyValueMap) (item interface{}, err error) {
 
 	if data == nil || id == nil {
 		return nil, nil
 	}
 
-	objectId := c.generateBucketId(id)
+	objectId := c.GenerateBucketId(id)
 	// Get document for update
 	buf := make(map[string]interface{})
 	getCas, getErr := c.Bucket.Get(objectId, &buf)
@@ -611,28 +577,27 @@ func (c *IdentifiableCouchbasePersistence) UpdatePartially(correlationId string,
 	} else {
 		refl.ObjectWriter.SetProperties(newItem.Interface(), data.Value())
 	}
-	//
-	replaceItem := c.convertFromPublic(newItem.Interface())
-	_, replErr := c.Bucket.Replace(objectId, replaceItem, getCas, 0)
+
+	_, replErr := c.Bucket.Replace(objectId, newItem.Interface(), getCas, 0)
 
 	if replErr != nil {
 		return nil, replErr
 	}
 	c.Logger.Trace(correlationId, "Updated partially in %s with id = %s", c.BucketName, id)
-	c.convertToPublic(newItem.Interface())
 	// Convert to return type
-	item = c.GetConvResult(newItem, c.Prototype)
+	item = c.GetConvResult(newItem)
 	return item, nil
 }
 
-// Deleted a data item by it"s unique id.
-
+// DeleteById mathod are deleted a data item by its unique id.
+// Parameters:
 // - correlation_id    (optional) transaction id to trace execution through call chain.
 // - id                an id of the item to be deleted
-// - callback          (optional) callback function that receives deleted item or error.
+// Returns: item interface{}, err error
+// deleted item or error.
 func (c *IdentifiableCouchbasePersistence) DeleteById(correlationId string, id interface{}) (item interface{}, err error) {
 
-	objectId := c.generateBucketId(id)
+	objectId := c.GenerateBucketId(id)
 	buf := make(map[string]interface{})
 
 	_, getErr := c.Bucket.Get(objectId, &buf)
@@ -648,23 +613,21 @@ func (c *IdentifiableCouchbasePersistence) DeleteById(correlationId string, id i
 		return nil, remErr
 	}
 	c.Logger.Trace(correlationId, "Deleted from %s with id = %s", c.BucketName, id)
-	docPointer := c.GetProtoPtr()
-	jsonBuf, _ := json.Marshal(buf)
-	json.Unmarshal(jsonBuf, docPointer.Interface())
-	oldItem := c.GetConvResult(docPointer, c.Prototype)
-	c.convertToPublic(&oldItem)
+	oldItem := c.ConvertFromMap(buf)
 	return oldItem, nil
 }
 
-// Deletes data items that match to a given filter.
+// DeleteByFilter method are deletes data items that match to a given filter.
 // This method shall be called by a public deleteByFilter method from child class that
 // receives FilterParams and converts them into a filter function.
+// Parameters:
 // - correlationId     (optional) transaction id to trace execution through call chain.
 // - filter            (optional) a filter JSON object.
-// - callback          (optional) callback function that receives error or nil for success.
+// Returns: error
+// error or nil for success.
 func (c *IdentifiableCouchbasePersistence) DeleteByFilter(correlationId string, filter string) (err error) {
-	statement := "DELETE FROM `" + c.BucketName + "`"
 
+	statement := "DELETE FROM `" + c.BucketName + "`"
 	// Adjust max item count based on configuration
 	if filter != "" {
 		statement += " WHERE " + filter
@@ -675,17 +638,16 @@ func (c *IdentifiableCouchbasePersistence) DeleteByFilter(correlationId string, 
 	if queryErr != nil {
 		return queryErr
 	}
-
 	count := queryRes.Metrics().ResultCount
 	c.Logger.Trace(correlationId, "Deleted %d items from %s", count, c.BucketName)
-
 	return nil
 }
 
-//    Deletes multiple data items by their unique ids.
-//    - correlationId     (optional) transaction id to trace execution through call chain.
-//    - ids               ids of data items to be deleted.
-//    - callback          (optional) callback function that receives error or nil for success.
+// DeleteByIds methos are deletes multiple data items by their unique ids.
+//  - correlationId     (optional) transaction id to trace execution through call chain.
+//  - ids               ids of data items to be deleted.
+// Returns: error
+// error or nil for success.
 func (c *IdentifiableCouchbasePersistence) DeleteByIds(correlationId string, ids []interface{}) (err error) {
 	count := 0
 	var wg sync.WaitGroup
@@ -694,7 +656,7 @@ func (c *IdentifiableCouchbasePersistence) DeleteByIds(correlationId string, ids
 		wg.Add(1)
 		go func(i interface{}) {
 			defer wg.Done()
-			objectId := c.generateBucketId(i)
+			objectId := c.GenerateBucketId(i)
 			_, remErr := c.Bucket.Remove(objectId, 0)
 			// Ignore "Key does not exist on the server" error
 			if remErr != nil && remErr != gocb.ErrKeyNotFound {
@@ -711,7 +673,9 @@ func (c *IdentifiableCouchbasePersistence) DeleteByIds(correlationId string, ids
 	return err
 }
 
-// service function for return pointer on new prototype object for unmarshaling
+// GetProtoPtr method are returns pointer on new prototype object for unmarshaling or decode from DB
+// Returns reflect.Value
+// pointer on new empty object
 func (c *IdentifiableCouchbasePersistence) GetProtoPtr() reflect.Value {
 	proto := c.Prototype
 	if proto.Kind() == reflect.Ptr {
@@ -720,11 +684,30 @@ func (c *IdentifiableCouchbasePersistence) GetProtoPtr() reflect.Value {
 	return reflect.New(proto)
 }
 
-func (c *IdentifiableCouchbasePersistence) GetConvResult(docPointer reflect.Value, proto reflect.Type) interface{} {
+// GetConvResult method are returns properly converted result in interface{} object from pointer in docPointer
+func (c *IdentifiableCouchbasePersistence) GetConvResult(docPointer reflect.Value) interface{} {
 	item := docPointer.Elem().Interface()
 	c.ConvertToPublic(&item)
-	if proto.Kind() == reflect.Ptr {
+	if c.Prototype.Kind() == reflect.Ptr {
 		return docPointer.Interface()
 	}
 	return item
+}
+
+// GetPtrIfNeed method are checks c.Prototype if need return pointer or value and returns properly results
+func (c *IdentifiableCouchbasePersistence) GetPtrIfNeed(item interface{}) interface{} {
+	if c.Prototype.Kind() == reflect.Ptr {
+		newPtr := reflect.New(c.Prototype.Elem())
+		newPtr.Elem().Set(reflect.ValueOf(item))
+		return newPtr.Interface()
+	}
+	return item
+}
+
+// ConvertFromMap method are converts from map[string]interface{} to object, defined by c.Prototype
+func (c *IdentifiableCouchbasePersistence) ConvertFromMap(buf interface{}) interface{} {
+	docPointer := c.GetProtoPtr()
+	jsonBuf, _ := json.Marshal(buf)
+	json.Unmarshal(jsonBuf, docPointer.Interface())
+	return c.GetConvResult(docPointer)
 }

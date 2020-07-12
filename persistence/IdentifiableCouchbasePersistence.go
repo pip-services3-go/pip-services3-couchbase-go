@@ -2,14 +2,11 @@ package persistence
 
 import (
 	"encoding/json"
-	"math/rand"
 	"reflect"
-	"strconv"
 	"sync"
-	"time"
 
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
-	cconv "github.com/pip-services3-go/pip-services3-commons-go/convert"
+	
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	refl "github.com/pip-services3-go/pip-services3-commons-go/reflect"
 	cmpersist "github.com/pip-services3-go/pip-services3-data-go/persistence"
@@ -107,10 +104,11 @@ References:
 	persistence.DeleteById("123", "1")
         ...
 */
+
+
 type IdentifiableCouchbasePersistence struct {
 	*CouchbasePersistence
-	MaxPageSize    int
-	CollectionName string
+	
 }
 
 // NewIdentifiableCouchbasePersistence method are creates a new instance of the persistence component.
@@ -144,58 +142,7 @@ func (c *IdentifiableCouchbasePersistence) Configure(config *cconf.ConfigParams)
 	c.CollectionName = config.GetAsStringWithDefault("collection", c.CollectionName)
 }
 
-// ConvertFromPublic method help convert object (map) from public view by added "_c" field with collection name
-// Parameters:
-// 	- item *interface{} item for convert
-// Returns: *interface{} converted item
-func (c *IdentifiableCouchbasePersistence) ConvertFromPublic(item *interface{}) *interface{} {
-	var value interface{} = *item
-	if reflect.TypeOf(item).Kind() != reflect.Ptr {
-		panic("ConvertFromPublic:Error! Item is not a pointer!")
-	}
 
-	if reflect.TypeOf(value).Kind() == reflect.Map {
-		m, ok := value.(map[string]interface{})
-		if ok {
-			m["_c"] = c.CollectionName
-			return item
-		}
-	}
-
-	if reflect.TypeOf(value).Kind() == reflect.Struct {
-		jsonVal, _ := json.Marshal(*item)
-		resMap := make(map[string]interface{}, 0)
-		json.Unmarshal(jsonVal, &resMap)
-		resMap["_c"] = c.CollectionName
-		var result interface{} = resMap
-		return &result
-	}
-	panic("ConvertFromPublic:Error! Item must to be a map[string]interface{} or struct!")
-}
-
-// ConvertToPublic method is convert object (map) to public view by exluded "_c" field
-// Parameters:
-// 	- item *interface{}  item for convert
-// Returns: *interface{} converted item
-func (c *IdentifiableCouchbasePersistence) ConvertToPublic(item *interface{}) {
-	var value interface{} = *item
-	if reflect.TypeOf(item).Kind() != reflect.Ptr {
-		panic("ConvertToPublic:Error! Item is not a pointer!")
-	}
-
-	if reflect.TypeOf(value).Kind() == reflect.Map {
-		m, ok := value.(map[string]interface{})
-		if ok {
-			delete(m, "_c")
-			return
-		}
-	}
-
-	if reflect.TypeOf(value).Kind() == reflect.Struct {
-		return
-	}
-	panic("ConvertToPublic:Error! Item must to be a map[string]interface{} or struct!")
-}
 
 // ConvertFromPublicPartial method are converts the given object from the public partial format.
 //    - value     the object to convert from the public partial format.
@@ -204,159 +151,8 @@ func (c *IdentifiableCouchbasePersistence) ConvertFromPublicPartial(value *inter
 	return c.ConvertFromPublic(value)
 }
 
-// GenerateBucketId method are generates unique id for specific collection in the bucket
-// Parameters:
-// - value a public unique id.
-// Retruns a unique bucket id.
-func (c *IdentifiableCouchbasePersistence) GenerateBucketId(value interface{}) string {
-	if value == nil {
-		return ""
-	}
-	return c.CollectionName + cconv.StringConverter.ToString(value)
-}
 
-// Generates a list of unique ids for specific collection in the bucket
-// Parameters:
-// - value a public unique ids.
-// Retruns a unique bucket ids.
-func (c *IdentifiableCouchbasePersistence) GenerateBucketIds(value []interface{}) []string {
-	if value == nil {
-		return nil
-	}
-	ids := make([]string, 0, 1)
-	for _, v := range value {
-		ids = append(ids, c.GenerateBucketId(v))
-	}
-	return ids
-}
 
-// GetPageByFilter method are gets a page of data items retrieved by a given filter and sorted according to sort parameters.
-// This method shall be called by a public getPageByFilter method from child class that
-// receives FilterParams and converts them into a filter function.
-// Parameters:
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - filter            (optional) a filter query string after WHERE clause
-// - paging            (optional) paging parameters
-// - sort              (optional) sorting string after ORDER BY clause
-// - sel           (optional) projection string after SELECT clause
-// Returns:  page *cdata.DataPage, err error
-// data page or error.
-func (c *IdentifiableCouchbasePersistence) GetPageByFilter(correlationId string, filter string, paging *cdata.PagingParams,
-	sort string, sel string) (page *cdata.DataPage, err error) {
-
-	selectStatement := "*"
-	if sel != "" {
-		selectStatement = sel
-	}
-	statement := "SELECT " + selectStatement + " FROM `" + c.BucketName + "`"
-	// Adjust max item count based on configuration
-	if paging == nil {
-		paging = cdata.NewEmptyPagingParams()
-	}
-
-	skip := paging.GetSkip(-1)
-	take := paging.GetTake(int64(c.MaxPageSize))
-	pagingEnabled := paging.Total
-	collectionFilter := "_c='" + c.CollectionName + "'"
-
-	if filter != "" {
-		filter = collectionFilter + " AND " + filter
-	} else {
-		filter = collectionFilter
-	}
-	statement += " WHERE " + filter
-
-	if sort != "" {
-		statement += " ORDER BY " + sort
-	}
-
-	if skip >= 0 {
-		statement += " OFFSET " + strconv.FormatInt(int64(skip), 10)
-	}
-	statement = statement + " LIMIT " + strconv.FormatInt(int64(take), 10)
-
-	query := gocb.NewN1qlQuery(statement)
-	// Todo: Make it configurable?
-	query.Consistency(gocb.StatementPlus)
-	queryResp, queryErr := c.Bucket.ExecuteN1qlQuery(query, nil)
-
-	if queryErr != nil {
-		return nil, queryErr
-	}
-
-	items := make([]interface{}, 0, 0)
-	buf := make(map[string]interface{}, 0)
-	for queryResp.Next(&buf) {
-		var item interface{}
-		if selectStatement == "*" {
-			item = c.ConvertFromMap(buf[c.BucketName])
-		} else {
-			item = c.ConvertFromMap(buf)
-		}
-		items = append(items, item)
-	}
-	if len(items) > 0 {
-		c.Logger.Trace(correlationId, "Retrieved %d from %s", len(items), c.BucketName)
-	}
-
-	if pagingEnabled {
-		var total int64 = int64(len(items))
-		page = cdata.NewDataPage(&total, items)
-	} else {
-		var total int64 = 0
-		page = cdata.NewDataPage(&total, items)
-	}
-	return page, nil
-}
-
-// GetListByFilter method are gets a list of data items retrieved by a given filter and sorted according to sort parameters.
-// This method shall be called by a public getListByFilter method from child class that
-// receives FilterParams and converts them into a filter function.
-// Parameters:
-// - correlationId    (optional) transaction id to trace execution through call chain.
-// - filter           (optional) a filter JSON object
-// - paging           (optional) paging parameters
-// - sort             (optional) sorting JSON object
-// - select           (optional) projection JSON object
-// Returns:  items []interface{}, err error
-// data list or error.
-func (c *IdentifiableCouchbasePersistence) GetListByFilter(correlationId string, filter string, sort string, sel string) (items []interface{}, err error) {
-
-	selectStatement := "*"
-	if sel != "" {
-		selectStatement = sel
-	}
-	statement := "SELECT " + selectStatement + " FROM `" + c.BucketName + "`"
-	// Adjust max item count based on configuration
-	if filter != "" {
-		statement += " WHERE " + filter
-	}
-	if sort != "" {
-		statement += " ORDER BY " + sort
-	}
-	query := gocb.NewN1qlQuery(statement)
-	// Todo: Make it configurable?
-	query.Consistency(gocb.RequestPlus)
-	queryResp, queryErr := c.Bucket.ExecuteN1qlQuery(query, nil)
-	if queryErr != nil {
-		return nil, queryErr
-	}
-	items = make([]interface{}, 0, 0)
-	buf := make(map[string]interface{}, 0)
-	for queryResp.Next(&buf) {
-		var item interface{}
-		if selectStatement == "*" {
-			item = c.ConvertFromMap(buf[c.BucketName])
-		} else {
-			item = c.ConvertFromMap(buf)
-		}
-		items = append(items, item)
-	}
-	if len(items) > 0 {
-		c.Logger.Trace(correlationId, "Retrieved %d from %s", len(items), c.BucketName)
-	}
-	return items, nil
-}
 
 // GetListByIds method are gets a list of data items retrieved by given unique ids.
 // Parameters:
@@ -416,54 +212,7 @@ func (c *IdentifiableCouchbasePersistence) GetOneById(correlationId string, id i
 	return item, nil
 }
 
-// GetOneRandom method are gts a random item from items that match to a given filter.
-// This method shall be called by a public getOneRandom method from child class that
-// receives FilterParams and converts them into a filter function.
-// Parameters:
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - filter            (optional) a filter JSON object
-// Returns: item interface{}, err error
-// a random item or error.
-func (c *IdentifiableCouchbasePersistence) GetOneRandom(correlationId string, filter string) (item interface{}, err error) {
 
-	statement := "SELECT COUNT(*) FROM `" + c.BucketName + "`"
-	// Adjust max item count based on configuration
-	if filter != "" {
-		statement += " WHERE " + filter
-	}
-
-	query := gocb.NewN1qlQuery(statement)
-	// Todo: Make it configurable?
-	query.Consistency(gocb.RequestPlus)
-	queryRes, queryErr := c.Bucket.ExecuteN1qlQuery(query, nil)
-
-	count := queryRes.Metrics().ResultCount
-
-	if queryErr != nil || count == 0 {
-		return nil, queryErr
-	}
-	statement = "SELECT * FROM `" + c.BucketName + "`"
-	// Adjust max item count based on configuration
-	if filter != "" {
-		statement += " WHERE " + filter
-	}
-	rand.Seed(time.Now().UnixNano())
-	skip := rand.Int63n(int64(count))
-	if skip < 0 {
-		skip = 0
-	}
-	statement += " OFFSET " + strconv.FormatInt(skip, 10) + " LIMIT 1"
-	query = gocb.NewN1qlQuery(statement)
-	queryRes, queryErr = c.Bucket.ExecuteN1qlQuery(query, nil)
-	if queryErr != nil {
-		return nil, queryErr
-	}
-	buf := make(map[string]interface{})
-	queryRes.Next(&buf)
-	item = c.ConvertFromMap(buf)
-	c.Logger.Trace(correlationId, "Retrieved random item from %s", c.BucketName)
-	return item, nil
-}
 
 // Create method are creates a data item.
 // Parameters:
@@ -617,32 +366,6 @@ func (c *IdentifiableCouchbasePersistence) DeleteById(correlationId string, id i
 	return oldItem, nil
 }
 
-// DeleteByFilter method are deletes data items that match to a given filter.
-// This method shall be called by a public deleteByFilter method from child class that
-// receives FilterParams and converts them into a filter function.
-// Parameters:
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - filter            (optional) a filter JSON object.
-// Returns: error
-// error or nil for success.
-func (c *IdentifiableCouchbasePersistence) DeleteByFilter(correlationId string, filter string) (err error) {
-
-	statement := "DELETE FROM `" + c.BucketName + "`"
-	// Adjust max item count based on configuration
-	if filter != "" {
-		statement += " WHERE " + filter
-	}
-
-	query := gocb.NewN1qlQuery(statement)
-	queryRes, queryErr := c.Bucket.ExecuteN1qlQuery(query, nil)
-	if queryErr != nil {
-		return queryErr
-	}
-	count := queryRes.Metrics().ResultCount
-	c.Logger.Trace(correlationId, "Deleted %d items from %s", count, c.BucketName)
-	return nil
-}
-
 // DeleteByIds methos are deletes multiple data items by their unique ids.
 //  - correlationId     (optional) transaction id to trace execution through call chain.
 //  - ids               ids of data items to be deleted.
@@ -673,41 +396,4 @@ func (c *IdentifiableCouchbasePersistence) DeleteByIds(correlationId string, ids
 	return err
 }
 
-// GetProtoPtr method are returns pointer on new prototype object for unmarshaling or decode from DB
-// Returns reflect.Value
-// pointer on new empty object
-func (c *IdentifiableCouchbasePersistence) GetProtoPtr() reflect.Value {
-	proto := c.Prototype
-	if proto.Kind() == reflect.Ptr {
-		proto = proto.Elem()
-	}
-	return reflect.New(proto)
-}
 
-// GetConvResult method are returns properly converted result in interface{} object from pointer in docPointer
-func (c *IdentifiableCouchbasePersistence) GetConvResult(docPointer reflect.Value) interface{} {
-	item := docPointer.Elem().Interface()
-	c.ConvertToPublic(&item)
-	if c.Prototype.Kind() == reflect.Ptr {
-		return docPointer.Interface()
-	}
-	return item
-}
-
-// GetPtrIfNeed method are checks c.Prototype if need return pointer or value and returns properly results
-func (c *IdentifiableCouchbasePersistence) GetPtrIfNeed(item interface{}) interface{} {
-	if c.Prototype.Kind() == reflect.Ptr {
-		newPtr := reflect.New(c.Prototype.Elem())
-		newPtr.Elem().Set(reflect.ValueOf(item))
-		return newPtr.Interface()
-	}
-	return item
-}
-
-// ConvertFromMap method are converts from map[string]interface{} to object, defined by c.Prototype
-func (c *IdentifiableCouchbasePersistence) ConvertFromMap(buf interface{}) interface{} {
-	docPointer := c.GetProtoPtr()
-	jsonBuf, _ := json.Marshal(buf)
-	json.Unmarshal(jsonBuf, docPointer.Interface())
-	return c.GetConvResult(docPointer)
-}

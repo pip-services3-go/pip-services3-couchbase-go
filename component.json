@@ -1,6 +1,6 @@
 {
   "name": "pip-services3-couchbase-go",
-  "registry": "pip-services",
-  "version": "1.0.1",
-  "build": null
+  "registry": "github.com/pip-services3-go",
+  "version": "3.0.1",
+  "build": 0
 }

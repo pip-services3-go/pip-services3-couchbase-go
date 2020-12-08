@@ -22,22 +22,22 @@ accessing c.Connection properties.
 
 Configuration parameters:
 
-- bucket:                      (optional) Couchbase bucket name
-- connection(s):
-  - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery]]
-  - host:                      host name or IP address
-  - port:                      port number (default: 27017)
-  - uri:                       resource URI or connection string with all parameters in it
-- credential(s):
-  - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore]]
-  - username:                  (optional) user name
-  - password:                  (optional) user password
-- options:
-  - auto_create:               (optional) automatically create missing bucket (default: false)
-  - auto_index:                (optional) automatically create primary index (default: false)
-  - flush_enabled:             (optional) bucket flush enabled (default: false)
-  - bucket_type:               (optional) bucket type (default: couchbase)
-  - ram_quota:                 (optional) RAM quota in MB (default: 100)
+  - bucket:                      (optional) Couchbase bucket name
+  - connection(s):
+    - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery]]
+    - host:                      host name or IP address
+    - port:                      port number (default: 27017)
+    - uri:                       resource URI or connection string with all parameters in it
+  - credential(s):
+    - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore]]
+    - username:                  (optional) user name
+    - password:                  (optional) user password
+  - options:
+    - auto_create:               (optional) automatically create missing bucket (default: false)
+    - auto_index:                (optional) automatically create primary index (default: false)
+    - flush_enabled:             (optional) bucket flush enabled (default: false)
+    - bucket_type:               (optional) bucket type (default: couchbase)
+    - ram_quota:                 (optional) RAM quota in MB (default: 100)
 
  References:
 
@@ -64,7 +64,7 @@ type CouchbaseConnection struct {
 
 // NewCouchbaseConnection are creates a new instance of the connection component.
 // Parameters:
-//    - bucketName the name of couchbase bucket
+//   - bucketName the name of couchbase bucket
 func NewCouchbaseConnection(bucketName string) *CouchbaseConnection {
 	c := CouchbaseConnection{}
 	c.BucketName = bucketName
@@ -86,7 +86,7 @@ func NewCouchbaseConnection(bucketName string) *CouchbaseConnection {
 
 // Configure are configures component by passing configuration parameters.
 // Parameters:
-//    - config    configuration parameters to be set.
+//   - config    configuration parameters to be set.
 func (c *CouchbaseConnection) Configure(config *cconf.ConfigParams) {
 	config = config.SetDefaults(c.defaultConfig)
 	c.ConnectionResolver.Configure(config)
@@ -96,7 +96,7 @@ func (c *CouchbaseConnection) Configure(config *cconf.ConfigParams) {
 
 // SetReferences are sets references to dependent components.
 // Parameters:
-// 	- references 	references to locate the component dependencies.
+//   - references 	references to locate the component dependencies.
 func (c *CouchbaseConnection) SetReferences(references cref.IReferences) {
 	c.Logger.SetReferences(references)
 	c.ConnectionResolver.SetReferences(references)
@@ -110,7 +110,7 @@ func (c *CouchbaseConnection) IsOpen() bool {
 
 // Open method are opens the component.
 // Parameters:
-// 	 - correlationId 	(optional) transaction id to trace execution through call chain.
+//   - correlationId  (optional) transaction id to trace execution through call chain.
 // Returns: error
 // error or nil no errors occured.
 func (c *CouchbaseConnection) Open(correlationId string) (err error) {
@@ -240,7 +240,7 @@ func (c *CouchbaseConnection) Open(correlationId string) (err error) {
 
 // Closes component and frees used resources.
 // Parameters:
-// 	 - correlationId 	(optional) transaction id to trace execution through call chain.
+//   - correlationId (optional) transaction id to trace execution through call chain.
 // Returns: error
 // error or null no errors occured.
 func (c *CouchbaseConnection) Close(correlationId string) (err error) {

@@ -21,16 +21,16 @@ It is able to process multiple connections to Couchbase cluster nodes.
 
 Configuration parameters:
 
-- connection(s):
-  - discovery_key:               (optional) a key to retrieve the connection from IDiscovery
-  - host:                        host name or IP address
-  - port:                        port number (default: 27017)
-  - database:                    database (bucket) name
-  - uri:                         resource URI or connection string with all parameters in it
-- credential(s):
-  - store_key:                   (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
-  - username:                    user name
-  - password:                    user password
+ - connection(s):
+   - discovery_key:               (optional) a key to retrieve the connection from IDiscovery
+   - host:                        host name or IP address
+   - port:                        port number (default: 27017)
+   - database:                    database (bucket) name
+   - uri:                         resource URI or connection string with all parameters in it
+ - credential(s):
+   - store_key:                   (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
+   - username:                    user name
+   - password:                    user password
 
 References:
 
@@ -192,7 +192,7 @@ func (c *CouchbaseConnectionResolver) composeConnection(connections []*ccon.Conn
 
 // Resolves Couchbase connection URI from connection and credential parameters.
 // Parameters:
-//    - correlationId     (optional) transaction id to trace execution through call chain.
+//   - correlationId     (optional) transaction id to trace execution through call chain.
 // Returns: connection *CouchbaseConnectionParams, err error
 // resolved connection params or error.
 func (c *CouchbaseConnectionResolver) Resolve(correlationId string) (connection *CouchbaseConnectionParams, err error) {

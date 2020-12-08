@@ -13,6 +13,11 @@ import (
 	gocb "gopkg.in/couchbase/gocb.v1"
 )
 
+type IdentifiableCouchbasePersistence struct {
+	*CouchbasePersistence
+	
+}
+
 /*
 IdentifiableCouchbasePersistence abstract persistence component that stores data in Couchbase
 and implements a number of CRUD operations over data items with unique ids.
@@ -27,24 +32,24 @@ accessing c.Bucket properties.
 
 Configuration parameters:
 
-- bucket:                      (optional) Couchbase bucket name
-- collection:                  (optional) Couchbase collection name
-- connection(s):
-  - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery
-  - host:                      host name or IP address
-  - port:                      port number (default: 27017)
-  - uri:                       resource URI or connection string with all parameters in it
-- credential(s):
-  - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
-  - username:                  (optional) user name
-  - password:                  (optional) user password
-- options:
-  - max_pool_size:             (optional) maximum connection pool size (default: 2)
-  - keep_alive:                (optional) enable connection keep alive (default: true)
-  - connect_timeout:           (optional) connection timeout in milliseconds (default: 5 sec)
-  - auto_reconnect:            (optional) enable auto reconnection (default: true)
-  - max_page_size:             (optional) maximum page size (default: 100)
-  - debug:                     (optional) enable debug output (default: false).
+  - bucket:                      (optional) Couchbase bucket name
+  - collection:                  (optional) Couchbase collection name
+  - connection(s):
+    - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery
+    - host:                      host name or IP address
+    - port:                      port number (default: 27017)
+    - uri:                       resource URI or connection string with all parameters in it
+  - credential(s):
+    - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
+    - username:                  (optional) user name
+    - password:                  (optional) user password
+  - options:
+    - max_pool_size:             (optional) maximum connection pool size (default: 2)
+    - keep_alive:                (optional) enable connection keep alive (default: true)
+    - connect_timeout:           (optional) connection timeout in milliseconds (default: 5 sec)
+    - auto_reconnect:            (optional) enable auto reconnection (default: true)
+    - max_page_size:             (optional) maximum page size (default: 100)
+    - debug:                     (optional) enable debug output (default: false).
 
 References:
 
@@ -54,68 +59,63 @@ References:
 
  Example:
 
-    type MyCouchbasePersistence struct {
-		 *IdentifiableCouchbasePersistence
-	}
+  type MyCouchbasePersistence struct {
+      *IdentifiableCouchbasePersistence
+  }
 
-    func NewMyCouchbasePersistence()*MyCouchbasePersistence {
-		c := MyCouchbasePersistence{}
-		c.IdentifiableCouchbasePersistence = NewIdentifiableCouchbasePersistence(reflect.TypeOf(MyData{}), "mybucket", "mycollection")
-		return &c
-    }
+  func NewMyCouchbasePersistence()*MyCouchbasePersistence {
+      c := MyCouchbasePersistence{}
+      c.IdentifiableCouchbasePersistence = NewIdentifiableCouchbasePersistence(reflect.TypeOf(MyData{}), "mybucket", "mycollection")
+      return &c
+  }
 
-    func (c *MyCouchbasePersistence) GetPageByFilter(correlationId string, filter *cdata.FilterParams, paging *cdata.PagingParams) (page *cbfixture.MyDataPage, err error) {
-		if filter == nil {
-			filter = cdata.NewEmptyFilterParams()
-		}
-		name := filter.GetAsString("name")
-		filterCondition := ""
-		if name != "" {
-			filterCondition += "name='" + name + "'"
-		}
-		tempPage, err := c.IdentifiableCouchbasePersistence.GetPageByFilter(correlationId, filterCondition, paging, "", "")
-		// Convert to MyDataPage
-		dataLen := int64(len(tempPage.Data)) // For full release tempPage and delete this by GC
-		data := make([]cbfixture.MyData, dataLen)
-		for i, v := range tempPage.Data {
-			data[i] = v.(cbfixture.MyData)
-		}
-		page = cbfixture.NewMyDataPage(&dataLen, data)
-		return page, err
-	}
+  func (c *MyCouchbasePersistence) GetPageByFilter(correlationId string, filter *cdata.FilterParams, paging *cdata.PagingParams) (page *cbfixture.MyDataPage, err error) {
+      if filter == nil {
+          filter = cdata.NewEmptyFilterParams()
+      }
+      name := filter.GetAsString("name")
+      filterCondition := ""
+      if name != "" {
+          filterCondition += "name='" + name + "'"
+      }
+      tempPage, err := c.IdentifiableCouchbasePersistence.GetPageByFilter(correlationId, filterCondition, paging, "", "")
+      // Convert to MyDataPage
+      dataLen := int64(len(tempPage.Data)) // For full release tempPage and delete this by GC
+      data := make([]cbfixture.MyData, dataLen)
+      for i, v := range tempPage.Data {
+          data[i] = v.(cbfixture.MyData)
+      }
+      page = cbfixture.NewMyDataPage(&dataLen, data)
+      return page, err
+  }
 
 
-    persistence := NewMyCouchbasePersistence();
-    persistence.Configure(ConfigParams.fromTuples(
-        "host", "localhost",
-        "port", 27017,
-    ));
+  persistence := NewMyCouchbasePersistence();
+  persistence.Configure(ConfigParams.fromTuples(
+      "host", "localhost",
+      "port", 27017,
+  ));
 
     persitence.Open("123")
         ...
-	persistence.Create("123", MyData{ id: "1", name: "ABC" })
-		...
+    persistence.Create("123", MyData{ id: "1", name: "ABC" })
+        ...
     result, err:= persistence.GetPageByFilter(
             "123",
             NewFilterParamsFromTuples("name", "ABC"),
             nil)
 
     fmt.Println(page.data);          // Result: { id: "1", name: "ABC" }
-	persistence.DeleteById("123", "1")
-        ...
+    persistence.DeleteById("123", "1")
+      ...
+
+
+NewIdentifiableCouchbasePersistence method are creates a new instance of the persistence component.
+Parameters:
+  - proto reflect.Type prototype for properly convert
+  - bucket string  couchbase bucket name
+  - collection    (optional) a collection name.
 */
-
-
-type IdentifiableCouchbasePersistence struct {
-	*CouchbasePersistence
-	
-}
-
-// NewIdentifiableCouchbasePersistence method are creates a new instance of the persistence component.
-// Parameters:
-//	- proto reflect.Type prototype for properly convert
-//	- bucket string  couchbase bucket name
-//  - collection    (optional) a collection name.
 func NewIdentifiableCouchbasePersistence(proto reflect.Type, bucket string, collection string) *IdentifiableCouchbasePersistence {
 
 	if bucket == "" {
@@ -134,7 +134,7 @@ func NewIdentifiableCouchbasePersistence(proto reflect.Type, bucket string, coll
 
 //  Configure method are configures component by passing configuration parameters.
 // Parameters:
-//  - config    configuration parameters to be set.
+//   - config    configuration parameters to be set.
 func (c *IdentifiableCouchbasePersistence) Configure(config *cconf.ConfigParams) {
 	c.CouchbasePersistence.Configure(config)
 
@@ -145,7 +145,7 @@ func (c *IdentifiableCouchbasePersistence) Configure(config *cconf.ConfigParams)
 
 
 // ConvertFromPublicPartial method are converts the given object from the public partial format.
-//    - value     the object to convert from the public partial format.
+//   - value     the object to convert from the public partial format.
 // Retruns the initial object.
 func (c *IdentifiableCouchbasePersistence) ConvertFromPublicPartial(value *interface{}) *interface{} {
 	return c.ConvertFromPublic(value)
@@ -156,8 +156,8 @@ func (c *IdentifiableCouchbasePersistence) ConvertFromPublicPartial(value *inter
 
 // GetListByIds method are gets a list of data items retrieved by given unique ids.
 // Parameters:
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - ids               ids of data items to be retrieved
+//   - correlationId     (optional) transaction id to trace execution through call chain.
+//   - ids               ids of data items to be retrieved
 // Returns:  items []interface{}, err error
 // a data list or error.
 func (c *IdentifiableCouchbasePersistence) GetListByIds(correlationId string, ids []interface{}) (items []interface{}, err error) {
@@ -191,8 +191,8 @@ func (c *IdentifiableCouchbasePersistence) GetListByIds(correlationId string, id
 }
 
 // GetOneById method are gets a data item by its unique id.
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - id                an id of data item to be retrieved.
+//   - correlationId     (optional) transaction id to trace execution through call chain.
+//   - id                an id of data item to be retrieved.
 // Returns:  item interface{}, err error
 // data item or error.
 func (c *IdentifiableCouchbasePersistence) GetOneById(correlationId string, id interface{}) (item interface{}, err error) {
@@ -216,8 +216,8 @@ func (c *IdentifiableCouchbasePersistence) GetOneById(correlationId string, id i
 
 // Create method are creates a data item.
 // Parameters:
-//  - correlation_id    (optional) transaction id to trace execution through call chain.
-//  - item              an item to be created.
+//   - correlation_id    (optional) transaction id to trace execution through call chain.
+//   - item              an item to be created.
 // Returns:  result interface{}, err error
 // created item or error.
 func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item interface{}) (result interface{}, err error) {
@@ -245,9 +245,9 @@ func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item int
 // Set method are sets a data item. If the data item exists it updates it,
 // otherwise it create a new data item.
 // Parameters:
-// - correlation_id    (optional) transaction id to trace execution through call chain.
-// - item              a item to be set.
-// - callback          (optional) callback function that receives updated item or error.
+//   - correlation_id    (optional) transaction id to trace execution through call chain.
+//   - item              a item to be set.
+//   - callback          (optional) callback function that receives updated item or error.
 func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interface{}) (result interface{}, err error) {
 	if item == nil {
 		return nil, nil
@@ -273,8 +273,8 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 
 // Update method are updates a data item.
 // Parameters:
-//    - correlation_id    (optional) transaction id to trace execution through call chain.
-//    - item              an item to be updated.
+//   - correlation_id    (optional) transaction id to trace execution through call chain.
+//   - item              an item to be updated.
 // Returns:  result interface{}, err error
 // updated item or error.
 func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item interface{}) (result interface{}, err error) {
@@ -298,9 +298,9 @@ func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item int
 
 // UpdatePartially methos are updates only few selected fields in a data item.
 // Parameters:
-// - correlation_id    (optional) transaction id to trace execution through call chain.
-// - id                an id of data item to be updated.
-// - data              a map with fields to be updated.
+//   - correlation_id    (optional) transaction id to trace execution through call chain.
+//   - id                an id of data item to be updated.
+//   - data              a map with fields to be updated.
 // Returns: result interface{}, err error
 // updated item or error.
 func (c *IdentifiableCouchbasePersistence) UpdatePartially(correlationId string, id interface{}, data *cdata.AnyValueMap) (item interface{}, err error) {
@@ -340,8 +340,8 @@ func (c *IdentifiableCouchbasePersistence) UpdatePartially(correlationId string,
 
 // DeleteById mathod are deleted a data item by its unique id.
 // Parameters:
-// - correlation_id    (optional) transaction id to trace execution through call chain.
-// - id                an id of the item to be deleted
+//   - correlation_id    (optional) transaction id to trace execution through call chain.
+//   - id                an id of the item to be deleted
 // Returns: item interface{}, err error
 // deleted item or error.
 func (c *IdentifiableCouchbasePersistence) DeleteById(correlationId string, id interface{}) (item interface{}, err error) {
@@ -367,8 +367,8 @@ func (c *IdentifiableCouchbasePersistence) DeleteById(correlationId string, id i
 }
 
 // DeleteByIds methos are deletes multiple data items by their unique ids.
-//  - correlationId     (optional) transaction id to trace execution through call chain.
-//  - ids               ids of data items to be deleted.
+//   - correlationId     (optional) transaction id to trace execution through call chain.
+//   - ids               ids of data items to be deleted.
 // Returns: error
 // error or nil for success.
 func (c *IdentifiableCouchbasePersistence) DeleteByIds(correlationId string, ids []interface{}) (err error) {

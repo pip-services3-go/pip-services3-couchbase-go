@@ -18,108 +18,6 @@ import (
 	gocb "gopkg.in/couchbase/gocb.v1"
 )
 
-/*
-CouchbasePersistence abstract persistence component that stores data in Couchbase
-and is based using Couchbaseose object relational mapping.
-
-This is the most basic persistence component that is only
-able to store data items of interface{} type. Specific CRUD operations
-over the data items must be implemented in child classes by
-accessing c._collection or c._model properties.
-
-Configuration parameters:
-
-- bucket:                      (optional) Couchbase bucket name
-- connection(s):
-  - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery
-  - host:                      host name or IP address
-  - port:                      port number (default: 27017)
-  - uri:                       resource URI or connection string with all parameters in it
-- credential(s):
-  - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
-  - username:                  (optional) user name
-  - password:                  (optional) user password
-- options:
-  - auto_create:               (optional) automatically create missing bucket (default: false)
-  - auto_index:                (optional) automatically create primary index (default: false)
-  - flush_enabled:             (optional) bucket flush enabled (default: false)
-  - bucket_type:               (optional) bucket type (default: couchbase)
-  - ram_quota:                 (optional) RAM quota in MB (default: 100)
-
- References:
-
-- *:logger:*:*:1.0           (optional) ILogger components to pass log messages
-- *:discovery:*:*:1.0        (optional) IDiscovery services
-- *:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials
-
-Example:
-
-	type MyCouchbasePersistence struct {
-	  *CouchbasePersistence
-	}
-
-    func NewMyCouchbasePersistence() *MyCouchbasePersistence {
-		c := MyCouchbasePersistence{}
-		c.CouchbasePersistence = NewCouchbasePersistence(reflect.TypeOf(MyData{}), "mycollection");
-		return &c;
-    }
-
-    func (c *MyCouchbasePersistence) GetOneById(correlationId string, id interface{}) (item interface{}, err error) {
-		objectId := c.GenerateBucketId(id)
-
-		buf := make(map[string]interface{}, 0)
-		_, getErr := c.Bucket.Get(objectId, &buf)
-		if getErr != nil {
-			// Ignore "Key does not exist on the server" error
-			if getErr == gocb.ErrKeyNotFound {
-				return nil, nil
-			}
-			return nil, getErr
-		}
-		c.Logger.Trace(correlationId, "Retrieved from %s by id = %s", c.BucketName, objectId)
-		item = c.ConvertFromMap(buf)
-		return item, nil
-	}
-
-    func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interface{}) (result interface{}, err error) {
-		if item == nil {
-			return nil, nil
-		}
-		var newItem interface{}
-		newItem = cmpersist.CloneObject(item)
-		// Assign unique id if not exist
-		cmpersist.GenerateObjectId(&newItem)
-		id := cmpersist.GetObjectId(newItem)
-		setItem := c.ConvertFromPublic(&newItem)
-		objectId := c.GenerateBucketId(id)
-
-		_, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
-
-		if upsertErr != nil {
-			return nil, upsertErr
-		}
-
-		c.Logger.Trace(correlationId, "Set in %s with id = %s", c.BucketName, id)
-		c.ConvertToPublic(&newItem)
-		return c.GetPtrIfNeed(newItem), nil
-	}
-
-    persistence := NewMyCouchbasePersistence();
-    persistence.Configure(cconf.NewConfigParamsFromTuples(
-        "host", "localhost",
-        "port", 27017,
-    ));
-
-    persitence.Open("123")
-         ...
-
-	setItem, err := persistence.Set("123", MyData{ name: "ABC" })
-	if setErr=== nil {
-	 	item, err := persistence.GetOneById("123", setItem.Id)
-        fmt.Println(item);                   // Result: { name: "ABC", Id:"..." }
-    }
-*/
-
 type CouchbasePersistence struct {
 	defaultConfig   *cconf.ConfigParams
 	config          *cconf.ConfigParams
@@ -148,9 +46,110 @@ type CouchbasePersistence struct {
 	MaxPageSize    int
 }
 
+/*
+CouchbasePersistence abstract persistence component that stores data in Couchbase
+and is based using Couchbaseose object relational mapping.
+
+This is the most basic persistence component that is only
+able to store data items of interface{} type. Specific CRUD operations
+over the data items must be implemented in child classes by
+accessing c._collection or c._model properties.
+
+Configuration parameters:
+
+  - bucket:                      (optional) Couchbase bucket name
+  - connection(s):
+    - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery
+    - host:                      host name or IP address
+    - port:                      port number (default: 27017)
+    - uri:                       resource URI or connection string with all parameters in it
+  - credential(s):
+    - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
+    - username:                  (optional) user name
+    - password:                  (optional) user password
+  - options:
+    - auto_create:               (optional) automatically create missing bucket (default: false)
+    - auto_index:                (optional) automatically create primary index (default: false)
+    - flush_enabled:             (optional) bucket flush enabled (default: false)
+    - bucket_type:               (optional) bucket type (default: couchbase)
+    - ram_quota:                 (optional) RAM quota in MB (default: 100)
+
+ References:
+
+- *:logger:*:*:1.0           (optional) ILogger components to pass log messages
+- *:discovery:*:*:1.0        (optional) IDiscovery services
+- *:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials
+
+Example:
+  type MyCouchbasePersistence struct {
+    *CouchbasePersistence
+  }
+  
+  func NewMyCouchbasePersistence() *MyCouchbasePersistence {
+  	c := MyCouchbasePersistence{}
+  	c.CouchbasePersistence = NewCouchbasePersistence(reflect.TypeOf(MyData{}), "mycollection");
+  	return &c;
+  }
+  
+  func (c *MyCouchbasePersistence) GetOneById(correlationId string, id interface{}) (item interface{}, err error) {
+  	objectId := c.GenerateBucketId(id)
+  
+  	buf := make(map[string]interface{}, 0)
+  	_, getErr := c.Bucket.Get(objectId, &buf)
+  	if getErr != nil {
+  		// Ignore "Key does not exist on the server" error
+  		if getErr == gocb.ErrKeyNotFound {
+  			return nil, nil
+  		}
+  		return nil, getErr
+  	}
+  	c.Logger.Trace(correlationId, "Retrieved from %s by id = %s", c.BucketName, objectId)
+  	item = c.ConvertFromMap(buf)
+  	return item, nil
+  }
+  
+  func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interface{}) (result interface{}, err error) {
+    if item == nil {
+        return nil, nil
+    }
+    var newItem interface{}
+    newItem = cmpersist.CloneObject(item)
+    // Assign unique id if not exist
+    cmpersist.GenerateObjectId(&newItem)
+    id := cmpersist.GetObjectId(newItem)
+    setItem := c.ConvertFromPublic(&newItem)
+    objectId := c.GenerateBucketId(id)
+  
+    _, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
+  
+    if upsertErr != nil {
+       return nil, upsertErr
+    }
+  
+    c.Logger.Trace(correlationId, "Set in %s with id = %s", c.BucketName, id)
+    c.ConvertToPublic(&newItem)
+    return c.GetPtrIfNeed(newItem), nil
+  }
+
+  persistence := NewMyCouchbasePersistence();
+  persistence.Configure(cconf.NewConfigParamsFromTuples(
+      "host", "localhost",
+      "port", 27017,
+  ));
+
+  persitence.Open("123")
+       ...
+
+  setItem, err := persistence.Set("123", MyData{ name: "ABC" })
+  if setErr=== nil {
+    item, err := persistence.GetOneById("123", setItem.Id)
+    fmt.Println(item);      // Result: { name: "ABC", Id:"..." }
+  }
+*/
+
 // NewCouchbasePersistence method are creates a new instance of the persistence component.
 // Parameters:
-//    - bucket    a bucket name.
+//   - bucket  a bucket name.
 // Returns:  *CouchbasePersistence pointer on new instance
 func NewCouchbasePersistence(proto reflect.Type, bucket string) *CouchbasePersistence {
 	cp := CouchbasePersistence{}
@@ -173,7 +172,7 @@ func NewCouchbasePersistence(proto reflect.Type, bucket string) *CouchbasePersis
 }
 
 // Configure method are configures component by passing configuration parameters.
-// - config    configuration parameters to be set.
+//  - config configuration parameters to be set.
 func (c *CouchbasePersistence) Configure(config *cconf.ConfigParams) {
 	config = config.SetDefaults(c.defaultConfig)
 	c.config = config
@@ -225,7 +224,7 @@ func (c *CouchbasePersistence) IsOpen() bool {
 }
 
 // Open method are opens the component.
-// - correlationId 	(optional) transaction id to trace execution through call chain.
+//   - correlationId  (optional) transaction id to trace execution through call chain.
 // Return: error
 // error or nil no errors occured.
 func (c *CouchbasePersistence) Open(correlationId string) (err error) {
@@ -265,7 +264,7 @@ func (c *CouchbasePersistence) Open(correlationId string) (err error) {
 }
 
 // Close method are closes component and frees used resources.
-// - correlationId 	(optional) transaction id to trace execution through call chain.
+//   - correlationId  (optional) transaction id to trace execution through call chain.
 // Returns: error
 // error or nil no errors occured.
 func (c *CouchbasePersistence) Close(correlationId string) (err error) {
@@ -287,7 +286,7 @@ func (c *CouchbasePersistence) Close(correlationId string) (err error) {
 }
 
 // Clear method are clears component state.
-// - correlationId 	(optional) transaction id to trace execution through call chain.
+//   - correlationId 	(optional) transaction id to trace execution through call chain.
 // Returns: error
 // error or nil no errors occured.
 func (c *CouchbasePersistence) Clear(correlationId string) (err error) {
@@ -307,7 +306,7 @@ func (c *CouchbasePersistence) Clear(correlationId string) (err error) {
 
 // ConvertFromPublic method help convert object (map) from public view by added "_c" field with collection name
 // Parameters:
-// 	- item *interface{} item for convert
+// 	  - item *interface{} item for convert
 // Returns: *interface{} converted item
 func (c *CouchbasePersistence) ConvertFromPublic(item *interface{}) *interface{} {
 	var value interface{} = *item
@@ -337,7 +336,7 @@ func (c *CouchbasePersistence) ConvertFromPublic(item *interface{}) *interface{}
 
 // ConvertToPublic method is convert object (map) to public view by exluded "_c" field
 // Parameters:
-// 	- item *interface{}  item for convert
+// 	  - item *interface{}  item for convert
 // Returns: *interface{} converted item
 func (c *CouchbasePersistence) ConvertToPublic(item *interface{}) {
 	var value interface{} = *item
@@ -362,7 +361,7 @@ func (c *CouchbasePersistence) ConvertToPublic(item *interface{}) {
 
 // GenerateBucketId method are generates unique id for specific collection in the bucket
 // Parameters:
-// - value a public unique id.
+//   - value a public unique id.
 // Retruns a unique bucket id.
 func (c *CouchbasePersistence) GenerateBucketId(value interface{}) string {
 	if value == nil {
@@ -373,7 +372,7 @@ func (c *CouchbasePersistence) GenerateBucketId(value interface{}) string {
 
 // Generates a list of unique ids for specific collection in the bucket
 // Parameters:
-// - value a public unique ids.
+//   - value a public unique ids.
 // Retruns a unique bucket ids.
 func (c *CouchbasePersistence) GenerateBucketIds(value []interface{}) []string {
 	if value == nil {
@@ -390,11 +389,11 @@ func (c *CouchbasePersistence) GenerateBucketIds(value []interface{}) []string {
 // This method shall be called by a public getPageByFilter method from child class that
 // receives FilterParams and converts them into a filter function.
 // Parameters:
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - filter            (optional) a filter query string after WHERE clause
-// - paging            (optional) paging parameters
-// - sort              (optional) sorting string after ORDER BY clause
-// - sel           (optional) projection string after SELECT clause
+//   - correlationId     (optional) transaction id to trace execution through call chain.
+//   - filter            (optional) a filter query string after WHERE clause
+//   - paging            (optional) paging parameters
+//   - sort              (optional) sorting string after ORDER BY clause
+//   - sel           (optional) projection string after SELECT clause
 // Returns:  page *cdata.DataPage, err error
 // data page or error.
 func (c *CouchbasePersistence) GetPageByFilter(correlationId string, filter string, paging *cdata.PagingParams,
@@ -469,11 +468,11 @@ func (c *CouchbasePersistence) GetPageByFilter(correlationId string, filter stri
 // This method shall be called by a public getListByFilter method from child class that
 // receives FilterParams and converts them into a filter function.
 // Parameters:
-// - correlationId    (optional) transaction id to trace execution through call chain.
-// - filter           (optional) a filter JSON object
-// - paging           (optional) paging parameters
-// - sort             (optional) sorting JSON object
-// - select           (optional) projection JSON object
+//   - correlationId    (optional) transaction id to trace execution through call chain.
+//   - filter           (optional) a filter JSON object
+//   - paging           (optional) paging parameters
+//   - sort             (optional) sorting JSON object
+//   - select           (optional) projection JSON object
 // Returns:  items []interface{}, err error
 // data list or error.
 func (c *CouchbasePersistence) GetListByFilter(correlationId string, filter string, sort string, sel string) (items []interface{}, err error) {
@@ -518,8 +517,8 @@ func (c *CouchbasePersistence) GetListByFilter(correlationId string, filter stri
 // This method shall be called by a public getOneRandom method from child class that
 // receives FilterParams and converts them into a filter function.
 // Parameters:
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - filter            (optional) a filter JSON object
+//   - correlationId     (optional) transaction id to trace execution through call chain.
+//   - filter            (optional) a filter JSON object
 // Returns: item interface{}, err error
 // a random item or error.
 func (c *CouchbasePersistence) GetOneRandom(correlationId string, filter string) (item interface{}, err error) {
@@ -567,8 +566,8 @@ func (c *CouchbasePersistence) GetOneRandom(correlationId string, filter string)
 // This method shall be called by a public deleteByFilter method from child class that
 // receives FilterParams and converts them into a filter function.
 // Parameters:
-// - correlationId     (optional) transaction id to trace execution through call chain.
-// - filter            (optional) a filter JSON object.
+//   - correlationId     (optional) transaction id to trace execution through call chain.
+//   - filter            (optional) a filter JSON object.
 // Returns: error
 // error or nil for success.
 func (c *CouchbasePersistence) DeleteByFilter(correlationId string, filter string) (err error) {
@@ -591,8 +590,8 @@ func (c *CouchbasePersistence) DeleteByFilter(correlationId string, filter strin
 
 // Create method are creates a data item.
 // Parameters:
-//  - correlation_id    (optional) transaction id to trace execution through call chain.
-//  - item              an item to be created.
+//   - correlation_id    (optional) transaction id to trace execution through call chain.
+//   - item              an item to be created.
 // Returns:  result interface{}, err error
 // created item or error.
 func (c *CouchbasePersistence) Create(correlationId string, item interface{}) (result interface{}, err error) {

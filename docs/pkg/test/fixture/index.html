@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#375EAB">
+
+  <title>test_fixture - Go Documentation Server</title>
+
+<link type="text/css" rel="stylesheet" href="../../../lib/godoc/style.css">
+
+<script>window.initFuncs = [];</script>
+<script src="../../../lib/godoc/jquery.js" defer></script>
+
+
+
+<script>var goVersion = "go1.13.15";</script>
+<script src="../../../lib/godoc/godocs.js" defer></script>
+</head>
+<body>
+
+<div id='lowframe' style="position: fixed; bottom: 0; left: 0; height: 0; width: 100%; border-top: thin solid grey; background-color: white; overflow: auto;">
+...
+</div><!-- #lowframe -->
+
+<div id="topbar" class="wide"><div class="container">
+<div class="top-heading" id="heading-wide"><a href="../../index.html">Go Documentation Server</a></div>
+<div class="top-heading" id="heading-narrow"><a href="../../index.html">GoDoc</a></div>
+<a href="index.html#" id="menu-button"><span id="menu-button-arrow">&#9661;</span></a>
+<form method="GET" action="http://localhost:6060/search">
+<div id="menu">
+
+<span class="search-box"><input type="search" id="search" name="q" placeholder="Search" aria-label="Search" required><button type="submit"><span><!-- magnifying glass: --><svg width="24" height="24" viewBox="0 0 24 24"><title>submit search</title><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/><path d="M0 0h24v24H0z" fill="none"/></svg></span></button></span>
+</div>
+</form>
+
+</div></div>
+
+
+
+<div id="page" class="wide">
+<div class="container">
+
+
+  <h1>
+    Package test_fixture
+    <span class="text-muted"></span>
+  </h1>
+
+
+
+
+
+
+
+<div id="nav"></div>
+
+
+<!--
+	Copyright 2009 The Go Authors. All rights reserved.
+	Use of this source code is governed by a BSD-style
+	license that can be found in the LICENSE file.
+-->
+<!--
+	Note: Static (i.e., not template-generated) href and id
+	attributes start with "pkg-" to make it impossible for
+	them to conflict with generated attributes (some of which
+	correspond to Go identifiers).
+-->
+
+	<script>
+	document.ANALYSIS_DATA = null;
+	document.CALLGRAPH = null;
+	</script>
+
+	
+		
+		<div id="short-nav">
+			<dl>
+			<dd><code>import "test/fixture"</code></dd>
+			</dl>
+			<dl>
+			<dd><a href="index.html#pkg-overview" class="overviewLink">Overview</a></dd>
+			<dd><a href="index.html#pkg-index" class="indexLink">Index</a></dd>
+			
+			
+			</dl>
+		</div>
+		<!-- The package's Name is printed as title by the top-level template -->
+		<div id="pkg-overview" class="toggleVisible">
+			<div class="collapsed">
+				<h2 class="toggleButton" title="Click to show Overview section">Overview ▹</h2>
+			</div>
+			<div class="expanded">
+				<h2 class="toggleButton" title="Click to hide Overview section">Overview ▾</h2>
+				
+				
+			</div>
+		</div>
+
+		<div id="pkg-index" class="toggleVisible">
+		<div class="collapsed">
+			<h2 class="toggleButton" title="Click to show Index section">Index ▹</h2>
+		</div>
+		<div class="expanded">
+			<h2 class="toggleButton" title="Click to hide Index section">Index ▾</h2>
+
+		<!-- Table of contents for API; must be named manual-nav to turn off auto nav. -->
+			<div id="manual-nav">
+			<dl>
+			
+			
+			
+			
+				
+				<dd><a href="index.html#Dummy">type Dummy</a></dd>
+				
+				
+			
+				
+				<dd><a href="index.html#DummyMapPersistenceFixture">type DummyMapPersistenceFixture</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewDummyMapPersistenceFixture">func NewDummyMapPersistenceFixture(persistence IDummyMapPersistence) *DummyMapPersistenceFixture</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyMapPersistenceFixture.TestBatchOperations">func (c *DummyMapPersistenceFixture) TestBatchOperations(t *testing.T)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyMapPersistenceFixture.TestCrudOperations">func (c *DummyMapPersistenceFixture) TestCrudOperations(t *testing.T)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyMapPersistenceFixture.TestPaging">func (c *DummyMapPersistenceFixture) TestPaging(t *testing.T)</a></dd>
+				
+			
+				
+				<dd><a href="index.html#DummyPage">type DummyPage</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewDummyPage">func NewDummyPage(total *int64, data []Dummy) *DummyPage</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewEmptyDummyPage">func NewEmptyDummyPage() *DummyPage</a></dd>
+				
+				
+			
+				
+				<dd><a href="index.html#DummyPersistenceFixture">type DummyPersistenceFixture</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewDummyPersistenceFixture">func NewDummyPersistenceFixture(persistence IDummyPersistence) *DummyPersistenceFixture</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyPersistenceFixture.TestBatchOperations">func (c *DummyPersistenceFixture) TestBatchOperations(t *testing.T)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyPersistenceFixture.TestCrudOperations">func (c *DummyPersistenceFixture) TestCrudOperations(t *testing.T)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyPersistenceFixture.TestPaging">func (c *DummyPersistenceFixture) TestPaging(t *testing.T)</a></dd>
+				
+			
+				
+				<dd><a href="index.html#DummyRefPage">type DummyRefPage</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewDummyRefPage">func NewDummyRefPage(total *int64, data []*Dummy) *DummyRefPage</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewEmptyDummyRefPage">func NewEmptyDummyRefPage() *DummyRefPage</a></dd>
+				
+				
+			
+				
+				<dd><a href="index.html#DummyRefPersistenceFixture">type DummyRefPersistenceFixture</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewDummyRefPersistenceFixture">func NewDummyRefPersistenceFixture(persistence IDummyRefPersistence) *DummyRefPersistenceFixture</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyRefPersistenceFixture.TestBatchOperations">func (c *DummyRefPersistenceFixture) TestBatchOperations(t *testing.T)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyRefPersistenceFixture.TestCrudOperations">func (c *DummyRefPersistenceFixture) TestCrudOperations(t *testing.T)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#DummyRefPersistenceFixture.TestPaging">func (c *DummyRefPersistenceFixture) TestPaging(t *testing.T)</a></dd>
+				
+			
+				
+				<dd><a href="index.html#IDummyMapPersistence">type IDummyMapPersistence</a></dd>
+				
+				
+			
+				
+				<dd><a href="index.html#IDummyPersistence">type IDummyPersistence</a></dd>
+				
+				
+			
+				
+				<dd><a href="index.html#IDummyRefPersistence">type IDummyRefPersistence</a></dd>
+				
+				
+			
+				
+				<dd><a href="index.html#MapPage">type MapPage</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewEmptyMapPage">func NewEmptyMapPage() *MapPage</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewMapPage">func NewMapPage(total *int64, data []map[string]interface{}) *MapPage</a></dd>
+				
+				
+			
+			
+			</dl>
+			</div><!-- #manual-nav -->
+
+		
+
+		
+			<h3>Package files</h3>
+			<p>
+			<span style="font-size:90%">
+			
+				<a href="http://localhost:6060/src/test/fixture/Dummy.go">Dummy.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/DummyMapPersistenceFixture.go">DummyMapPersistenceFixture.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/DummyPage.go">DummyPage.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/DummyPersistenceFixture.go">DummyPersistenceFixture.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/DummyRefPage.go">DummyRefPage.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/DummyRefPersistenceFixture.go">DummyRefPersistenceFixture.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/IDummyMapPersistence.go">IDummyMapPersistence.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/IDummyPersistence.go">IDummyPersistence.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/IDummyRefPersistence.go">IDummyRefPersistence.go</a>
+			
+				<a href="http://localhost:6060/src/test/fixture/MapPage.go">MapPage.go</a>
+			
+			</span>
+			</p>
+		
+		</div><!-- .expanded -->
+		</div><!-- #pkg-index -->
+
+		
+
+		
+		
+		
+		
+			
+			
+			<h2 id="Dummy">type <a href="http://localhost:6060/src/test/fixture/Dummy.go?s=22:133#L1">Dummy</a>
+				<a class="permalink" href="index.html#Dummy">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type Dummy struct {
+<span id="Dummy.Id"></span>    Id      <a href="http://localhost:6060/pkg/builtin/#string">string</a> `json:&#34;id&#34;`
+<span id="Dummy.Key"></span>    Key     <a href="http://localhost:6060/pkg/builtin/#string">string</a> `json:&#34;key&#34;`
+<span id="Dummy.Content"></span>    Content <a href="http://localhost:6060/pkg/builtin/#string">string</a> `json:&#34;content&#34;`
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="DummyMapPersistenceFixture">type <a href="http://localhost:6060/src/test/fixture/DummyMapPersistenceFixture.go?s=151:299#L1">DummyMapPersistenceFixture</a>
+				<a class="permalink" href="index.html#DummyMapPersistenceFixture">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type DummyMapPersistenceFixture struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="NewDummyMapPersistenceFixture">func <a href="http://localhost:6060/src/test/fixture/DummyMapPersistenceFixture.go?s=301:397#L6">NewDummyMapPersistenceFixture</a>
+					<a class="permalink" href="index.html#NewDummyMapPersistenceFixture">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewDummyMapPersistenceFixture(persistence <a href="index.html#IDummyMapPersistence">IDummyMapPersistence</a>) *<a href="index.html#DummyMapPersistenceFixture">DummyMapPersistenceFixture</a></pre>
+				
+				
+				
+			
+
+			
+				
+				<h3 id="DummyMapPersistenceFixture.TestBatchOperations">func (*DummyMapPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyMapPersistenceFixture.go?s=3571:3641#L104">TestBatchOperations</a>
+					<a class="permalink" href="index.html#DummyMapPersistenceFixture.TestBatchOperations">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyMapPersistenceFixture">DummyMapPersistenceFixture</a>) TestBatchOperations(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="DummyMapPersistenceFixture.TestCrudOperations">func (*DummyMapPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyMapPersistenceFixture.go?s=648:717#L14">TestCrudOperations</a>
+					<a class="permalink" href="index.html#DummyMapPersistenceFixture.TestCrudOperations">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyMapPersistenceFixture">DummyMapPersistenceFixture</a>) TestCrudOperations(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="DummyMapPersistenceFixture.TestPaging">func (*DummyMapPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyMapPersistenceFixture.go?s=5055:5116#L156">TestPaging</a>
+					<a class="permalink" href="index.html#DummyMapPersistenceFixture.TestPaging">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyMapPersistenceFixture">DummyMapPersistenceFixture</a>) TestPaging(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="DummyPage">type <a href="http://localhost:6060/src/test/fixture/DummyPage.go?s=22:131#L1">DummyPage</a>
+				<a class="permalink" href="index.html#DummyPage">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type DummyPage struct {
+<span id="DummyPage.Total"></span>    Total *<a href="http://localhost:6060/pkg/builtin/#int64">int64</a>  `bson:&#34;total&#34; json:&#34;total&#34;`
+<span id="DummyPage.Data"></span>    Data  []<a href="index.html#Dummy">Dummy</a> `bson:&#34;data&#34; json:&#34;data&#34;`
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="NewDummyPage">func <a href="http://localhost:6060/src/test/fixture/DummyPage.go?s=195:251#L2">NewDummyPage</a>
+					<a class="permalink" href="index.html#NewDummyPage">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewDummyPage(total *<a href="http://localhost:6060/pkg/builtin/#int64">int64</a>, data []<a href="index.html#Dummy">Dummy</a>) *<a href="index.html#DummyPage">DummyPage</a></pre>
+				
+				
+				
+			
+				
+				<h3 id="NewEmptyDummyPage">func <a href="http://localhost:6060/src/test/fixture/DummyPage.go?s=133:168#L1">NewEmptyDummyPage</a>
+					<a class="permalink" href="index.html#NewEmptyDummyPage">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewEmptyDummyPage() *<a href="index.html#DummyPage">DummyPage</a></pre>
+				
+				
+				
+			
+
+			
+		
+			
+			
+			<h2 id="DummyPersistenceFixture">type <a href="http://localhost:6060/src/test/fixture/DummyPersistenceFixture.go?s=151:259#L1">DummyPersistenceFixture</a>
+				<a class="permalink" href="index.html#DummyPersistenceFixture">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type DummyPersistenceFixture struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="NewDummyPersistenceFixture">func <a href="http://localhost:6060/src/test/fixture/DummyPersistenceFixture.go?s=261:348#L6">NewDummyPersistenceFixture</a>
+					<a class="permalink" href="index.html#NewDummyPersistenceFixture">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewDummyPersistenceFixture(persistence <a href="index.html#IDummyPersistence">IDummyPersistence</a>) *<a href="index.html#DummyPersistenceFixture">DummyPersistenceFixture</a></pre>
+				
+				
+				
+			
+
+			
+				
+				<h3 id="DummyPersistenceFixture.TestBatchOperations">func (*DummyPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyPersistenceFixture.go?s=3357:3424#L105">TestBatchOperations</a>
+					<a class="permalink" href="index.html#DummyPersistenceFixture.TestBatchOperations">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyPersistenceFixture">DummyPersistenceFixture</a>) TestBatchOperations(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="DummyPersistenceFixture.TestCrudOperations">func (*DummyPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyPersistenceFixture.go?s=550:616#L14">TestCrudOperations</a>
+					<a class="permalink" href="index.html#DummyPersistenceFixture.TestCrudOperations">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyPersistenceFixture">DummyPersistenceFixture</a>) TestCrudOperations(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="DummyPersistenceFixture.TestPaging">func (*DummyPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyPersistenceFixture.go?s=4702:4760#L157">TestPaging</a>
+					<a class="permalink" href="index.html#DummyPersistenceFixture.TestPaging">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyPersistenceFixture">DummyPersistenceFixture</a>) TestPaging(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="DummyRefPage">type <a href="http://localhost:6060/src/test/fixture/DummyRefPage.go?s=22:136#L1">DummyRefPage</a>
+				<a class="permalink" href="index.html#DummyRefPage">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type DummyRefPage struct {
+<span id="DummyRefPage.Total"></span>    Total *<a href="http://localhost:6060/pkg/builtin/#int64">int64</a>   `bson:&#34;total&#34; json:&#34;total&#34;`
+<span id="DummyRefPage.Data"></span>    Data  []*<a href="index.html#Dummy">Dummy</a> `bson:&#34;data&#34; json:&#34;data&#34;`
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="NewDummyRefPage">func <a href="http://localhost:6060/src/test/fixture/DummyRefPage.go?s=209:272#L2">NewDummyRefPage</a>
+					<a class="permalink" href="index.html#NewDummyRefPage">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewDummyRefPage(total *<a href="http://localhost:6060/pkg/builtin/#int64">int64</a>, data []*<a href="index.html#Dummy">Dummy</a>) *<a href="index.html#DummyRefPage">DummyRefPage</a></pre>
+				
+				
+				
+			
+				
+				<h3 id="NewEmptyDummyRefPage">func <a href="http://localhost:6060/src/test/fixture/DummyRefPage.go?s=138:179#L1">NewEmptyDummyRefPage</a>
+					<a class="permalink" href="index.html#NewEmptyDummyRefPage">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewEmptyDummyRefPage() *<a href="index.html#DummyRefPage">DummyRefPage</a></pre>
+				
+				
+				
+			
+
+			
+		
+			
+			
+			<h2 id="DummyRefPersistenceFixture">type <a href="http://localhost:6060/src/test/fixture/DummyRefPersistenceFixture.go?s=151:267#L1">DummyRefPersistenceFixture</a>
+				<a class="permalink" href="index.html#DummyRefPersistenceFixture">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type DummyRefPersistenceFixture struct {
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="NewDummyRefPersistenceFixture">func <a href="http://localhost:6060/src/test/fixture/DummyRefPersistenceFixture.go?s=269:365#L6">NewDummyRefPersistenceFixture</a>
+					<a class="permalink" href="index.html#NewDummyRefPersistenceFixture">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewDummyRefPersistenceFixture(persistence <a href="index.html#IDummyRefPersistence">IDummyRefPersistence</a>) *<a href="index.html#DummyRefPersistenceFixture">DummyRefPersistenceFixture</a></pre>
+				
+				
+				
+			
+
+			
+				
+				<h3 id="DummyRefPersistenceFixture.TestBatchOperations">func (*DummyRefPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyRefPersistenceFixture.go?s=3340:3410#L104">TestBatchOperations</a>
+					<a class="permalink" href="index.html#DummyRefPersistenceFixture.TestBatchOperations">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyRefPersistenceFixture">DummyRefPersistenceFixture</a>) TestBatchOperations(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="DummyRefPersistenceFixture.TestCrudOperations">func (*DummyRefPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyRefPersistenceFixture.go?s=572:641#L14">TestCrudOperations</a>
+					<a class="permalink" href="index.html#DummyRefPersistenceFixture.TestCrudOperations">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyRefPersistenceFixture">DummyRefPersistenceFixture</a>) TestCrudOperations(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="DummyRefPersistenceFixture.TestPaging">func (*DummyRefPersistenceFixture) <a href="http://localhost:6060/src/test/fixture/DummyRefPersistenceFixture.go?s=4690:4751#L156">TestPaging</a>
+					<a class="permalink" href="index.html#DummyRefPersistenceFixture.TestPaging">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#DummyRefPersistenceFixture">DummyRefPersistenceFixture</a>) TestPaging(t *<a href="http://localhost:6060/pkg/testing/">testing</a>.<a href="http://localhost:6060/pkg/testing/#T">T</a>)</pre>
+				
+				
+				
+				
+			
+		
+			
+			
+			<h2 id="IDummyMapPersistence">type <a href="http://localhost:6060/src/test/fixture/IDummyMapPersistence.go?s=197:1005#L1">IDummyMapPersistence</a>
+				<a class="permalink" href="index.html#IDummyMapPersistence">&#xb6;</a>
+				
+				
+			</h2>
+			<p>
+extends IGetter&lt;DummyMap, String&gt;, IWriter&lt;DummyMap, String&gt;, IPartialUpdater&lt;DummyMap, String&gt; {
+</p>
+
+			<pre>type IDummyMapPersistence interface {
+    GetPageByFilter(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, filter *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#FilterParams">FilterParams</a>, paging *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#PagingParams">PagingParams</a>) (page *<a href="index.html#MapPage">MapPage</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    GetListByIds(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, ids []<a href="http://localhost:6060/pkg/builtin/#string">string</a>) (items []map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    GetOneById(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (item map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    Create(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, item map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}) (result map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    Update(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, item map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}) (result map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    UpdatePartially(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>, data *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#AnyValueMap">AnyValueMap</a>) (item map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    DeleteById(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (item map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    DeleteByIds(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, ids []<a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="IDummyPersistence">type <a href="http://localhost:6060/src/test/fixture/IDummyPersistence.go?s=188:859#L1">IDummyPersistence</a>
+				<a class="permalink" href="index.html#IDummyPersistence">&#xb6;</a>
+				
+				
+			</h2>
+			<p>
+extends IGetter&lt;Dummy, String&gt;, IWriter&lt;Dummy, String&gt;, IPartialUpdater&lt;Dummy, String&gt; {
+</p>
+
+			<pre>type IDummyPersistence interface {
+    GetPageByFilter(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, filter *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#FilterParams">FilterParams</a>, paging *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#PagingParams">PagingParams</a>) (page *<a href="index.html#DummyPage">DummyPage</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    GetListByIds(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, ids []<a href="http://localhost:6060/pkg/builtin/#string">string</a>) (items []<a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    GetOneById(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (item <a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    Create(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, item <a href="index.html#Dummy">Dummy</a>) (result <a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    Update(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, item <a href="index.html#Dummy">Dummy</a>) (result <a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    UpdatePartially(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>, data *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#AnyValueMap">AnyValueMap</a>) (item <a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    DeleteById(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (item <a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    DeleteByIds(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, ids []<a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="IDummyRefPersistence">type <a href="http://localhost:6060/src/test/fixture/IDummyRefPersistence.go?s=188:873#L1">IDummyRefPersistence</a>
+				<a class="permalink" href="index.html#IDummyRefPersistence">&#xb6;</a>
+				
+				
+			</h2>
+			<p>
+extends IGetter&lt;Dummy, String&gt;, IWriter&lt;Dummy, String&gt;, IPartialUpdater&lt;Dummy, String&gt; {
+</p>
+
+			<pre>type IDummyRefPersistence interface {
+    GetPageByFilter(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, filter *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#FilterParams">FilterParams</a>, paging *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#PagingParams">PagingParams</a>) (page *<a href="index.html#DummyRefPage">DummyRefPage</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    GetListByIds(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, ids []<a href="http://localhost:6060/pkg/builtin/#string">string</a>) (items []*<a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    GetOneById(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (item *<a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    Create(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, item *<a href="index.html#Dummy">Dummy</a>) (result *<a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    Update(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, item *<a href="index.html#Dummy">Dummy</a>) (result *<a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    UpdatePartially(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>, data *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/">cdata</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/data/#AnyValueMap">AnyValueMap</a>) (item *<a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    DeleteById(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, id <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (item *<a href="index.html#Dummy">Dummy</a>, err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+    DeleteByIds(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>, ids []<a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)
+}</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="MapPage">type <a href="http://localhost:6060/src/test/fixture/MapPage.go?s=22:163#L1">MapPage</a>
+				<a class="permalink" href="index.html#MapPage">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type MapPage struct {
+<span id="MapPage.Total"></span>    Total *<a href="http://localhost:6060/pkg/builtin/#int64">int64</a>                   `bson:&#34;total&#34; json:&#34;total&#34;`
+<span id="MapPage.Data"></span>    Data  []map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{} `bson:&#34;data&#34; json:&#34;data&#34;`
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="NewEmptyMapPage">func <a href="http://localhost:6060/src/test/fixture/MapPage.go?s=165:196#L1">NewEmptyMapPage</a>
+					<a class="permalink" href="index.html#NewEmptyMapPage">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewEmptyMapPage() *<a href="index.html#MapPage">MapPage</a></pre>
+				
+				
+				
+			
+				
+				<h3 id="NewMapPage">func <a href="http://localhost:6060/src/test/fixture/MapPage.go?s=221:290#L2">NewMapPage</a>
+					<a class="permalink" href="index.html#NewMapPage">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewMapPage(total *<a href="http://localhost:6060/pkg/builtin/#int64">int64</a>, data []map[<a href="http://localhost:6060/pkg/builtin/#string">string</a>]interface{}) *<a href="index.html#MapPage">MapPage</a></pre>
+				
+				
+				
+			
+
+			
+		
+	
+
+	
+
+
+
+
+
+
+
+<div id="footer">
+Build version go1.13.15.<br>
+Except as <a href="https://developers.google.com/site-policies#restrictions">noted</a>,
+the content of this page is licensed under the
+Creative Commons Attribution 3.0 License,
+and code is licensed under a <a href="http://localhost:6060/LICENSE">BSD license</a>.<br>
+<a href="http://localhost:6060/doc/tos.html">Terms of Service</a> |
+<a href="http://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
+</div>
+
+</div><!-- .container -->
+</div><!-- #page -->
+</body>
+</html>

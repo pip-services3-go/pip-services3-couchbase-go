@@ -18,34 +18,6 @@ import (
 	gocb "gopkg.in/couchbase/gocb.v1"
 )
 
-type CouchbasePersistence struct {
-	defaultConfig   *cconf.ConfigParams
-	config          *cconf.ConfigParams
-	references      cref.IReferences
-	opened          bool
-	localConnection bool
-	//The dependency resolver.
-	DependencyResolver *crefer.DependencyResolver
-	//The logger.
-	Logger *clog.CompositeLogger
-	//The Couchbase connection component.
-	Connection *CouchbaseConnection
-	//The configuration options.
-	Options *cconf.ConfigParams
-	//The Couchbase cluster object.
-	Cluster *gocb.Cluster
-	//The Couchbase bucket name.
-	BucketName string
-	//The Couchbase bucket object.
-	Bucket *gocb.Bucket
-	// Prototype for convert
-	Prototype reflect.Type
-
-	CollectionName string
-
-	MaxPageSize    int
-}
-
 /*
 CouchbasePersistence abstract persistence component that stores data in Couchbase
 and is based using Couchbaseose object relational mapping.
@@ -146,6 +118,33 @@ Example:
     fmt.Println(item);      // Result: { name: "ABC", Id:"..." }
   }
 */
+type CouchbasePersistence struct {
+	defaultConfig   *cconf.ConfigParams
+	config          *cconf.ConfigParams
+	references      cref.IReferences
+	opened          bool
+	localConnection bool
+	//The dependency resolver.
+	DependencyResolver *crefer.DependencyResolver
+	//The logger.
+	Logger *clog.CompositeLogger
+	//The Couchbase connection component.
+	Connection *CouchbaseConnection
+	//The configuration options.
+	Options *cconf.ConfigParams
+	//The Couchbase cluster object.
+	Cluster *gocb.Cluster
+	//The Couchbase bucket name.
+	BucketName string
+	//The Couchbase bucket object.
+	Bucket *gocb.Bucket
+	// Prototype for convert
+	Prototype reflect.Type
+
+	CollectionName string
+
+	MaxPageSize    int
+}
 
 // NewCouchbasePersistence method are creates a new instance of the persistence component.
 // Parameters:

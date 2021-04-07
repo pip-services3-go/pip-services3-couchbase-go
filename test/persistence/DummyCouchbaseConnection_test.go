@@ -6,13 +6,13 @@ import (
 
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
-	cbpersist "github.com/pip-services3-go/pip-services3-couchbase-go/persistence"
+	connect "github.com/pip-services3-go/pip-services3-couchbase-go/connect"
 	cbfixture "github.com/pip-services3-go/pip-services3-couchbase-go/test/fixture"
 	assert "github.com/stretchr/testify/assert"
 )
 
 func TestDummyCouchbaseConnection(t *testing.T) {
-	var connection *cbpersist.CouchbaseConnection
+	var connection *connect.CouchbaseConnection
 	var persistence *DummyCouchbasePersistence
 	var fixture *cbfixture.DummyPersistenceFixture
 
@@ -53,7 +53,7 @@ func TestDummyCouchbaseConnection(t *testing.T) {
 		"credential.password", couchbasePass,
 	)
 
-	connection = cbpersist.NewCouchbaseConnection("test")
+	connection = connect.NewCouchbaseConnection("test")
 	connection.Configure(dbConfig)
 
 	persistence = NewDummyCouchbasePersistence()

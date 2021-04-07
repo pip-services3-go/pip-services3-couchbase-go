@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
-	cbpersist "github.com/pip-services3-go/pip-services3-couchbase-go/test/persistence"
+	persist "github.com/pip-services3-go/pip-services3-couchbase-go/test/persistence"
 	assert "github.com/stretchr/testify/assert"
 )
 
 func BenchmarkCrudDummyCouchbase(b *testing.B) {
-	var persistence *cbpersist.DummyCouchbasePersistence
+	var persistence *persist.DummyCouchbasePersistence
 	var fixture *BenchmarkDummyFixture
 
 	couchbaseUri := os.Getenv("COUCHBASE_URI")
@@ -49,7 +49,7 @@ func BenchmarkCrudDummyCouchbase(b *testing.B) {
 		"credential.password", couchbasePass,
 	)
 
-	persistence = cbpersist.NewDummyCouchbasePersistence()
+	persistence = persist.NewDummyCouchbasePersistence()
 	persistence.Configure(dbConfig)
 
 	fixture = NewBenchmarkDummyFixture(persistence)

@@ -5,18 +5,20 @@ import (
 
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 
-	cbpersist "github.com/pip-services3-go/pip-services3-couchbase-go/persistence"
+	persist "github.com/pip-services3-go/pip-services3-couchbase-go/persistence"
 	cbfixture "github.com/pip-services3-go/pip-services3-couchbase-go/test/fixture"
 )
 
 type DummyMapCouchbasePersistence struct {
-	cbpersist.IdentifiableCouchbasePersistence
+	persist.IdentifiableCouchbasePersistence
 }
 
 func NewDummyMapCouchbasePersistence() *DummyMapCouchbasePersistence {
 	var t map[string]interface{}
 	proto := reflect.TypeOf(t)
-	return &DummyMapCouchbasePersistence{*cbpersist.NewIdentifiableCouchbasePersistence(proto, "test", "dummies")}
+	c := &DummyMapCouchbasePersistence{}
+	c.IdentifiableCouchbasePersistence = *persist.InheritIdentifiableCouchbasePersistence(c, proto, "test", "dummies")
+	return c
 }
 
 func (c *DummyMapCouchbasePersistence) Create(correlationId string, item map[string]interface{}) (result map[string]interface{}, err error) {

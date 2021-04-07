@@ -14,9 +14,17 @@ import (
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
 	crefer "github.com/pip-services3-go/pip-services3-commons-go/refer"
 	clog "github.com/pip-services3-go/pip-services3-components-go/log"
+	connect "github.com/pip-services3-go/pip-services3-couchbase-go/connect"
 	cmpersist "github.com/pip-services3-go/pip-services3-data-go/persistence"
 	gocb "gopkg.in/couchbase/gocb.v1"
 )
+
+type ICouchbasePersistenceOverrides interface {
+	DefineSchema()
+	ConvertFromPublic(item interface{}) interface{}
+	ConvertToPublic(item interface{}) interface{}
+	ConvertFromPublicPartial(item interface{}) interface{}
+}
 
 /*
 CouchbasePersistence abstract persistence component that stores data in Couchbase
@@ -56,16 +64,16 @@ Example:
   type MyCouchbasePersistence struct {
     *CouchbasePersistence
   }
-  
+
   func NewMyCouchbasePersistence() *MyCouchbasePersistence {
   	c := MyCouchbasePersistence{}
   	c.CouchbasePersistence = NewCouchbasePersistence(reflect.TypeOf(MyData{}), "mycollection");
   	return &c;
   }
-  
+
   func (c *MyCouchbasePersistence) GetOneById(correlationId string, id interface{}) (item interface{}, err error) {
   	objectId := c.GenerateBucketId(id)
-  
+
   	buf := make(map[string]interface{}, 0)
   	_, getErr := c.Bucket.Get(objectId, &buf)
   	if getErr != nil {
@@ -79,7 +87,7 @@ Example:
   	item = c.ConvertFromMap(buf)
   	return item, nil
   }
-  
+
   func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interface{}) (result interface{}, err error) {
     if item == nil {
         return nil, nil
@@ -89,17 +97,17 @@ Example:
     // Assign unique id if not exist
     cmpersist.GenerateObjectId(&newItem)
     id := cmpersist.GetObjectId(newItem)
-    setItem := c.ConvertFromPublic(&newItem)
+    setItem := c.Overrides.ConvertFromPublic(&newItem)
     objectId := c.GenerateBucketId(id)
-  
+
     _, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
-  
+
     if upsertErr != nil {
        return nil, upsertErr
     }
-  
+
     c.Logger.Trace(correlationId, "Set in %s with id = %s", c.BucketName, id)
-    c.ConvertToPublic(&newItem)
+    c.Overrides.ConvertToPublic(&newItem)
     return c.GetPtrIfNeed(newItem), nil
   }
 
@@ -119,17 +127,21 @@ Example:
   }
 */
 type CouchbasePersistence struct {
-	defaultConfig   *cconf.ConfigParams
-	config          *cconf.ConfigParams
-	references      cref.IReferences
-	opened          bool
-	localConnection bool
+	Overrides ICouchbasePersistenceOverrides
+
+	defaultConfig    *cconf.ConfigParams
+	config           *cconf.ConfigParams
+	references       cref.IReferences
+	opened           bool
+	localConnection  bool
+	schemaStatements []string
+
 	//The dependency resolver.
 	DependencyResolver *crefer.DependencyResolver
 	//The logger.
 	Logger *clog.CompositeLogger
 	//The Couchbase connection component.
-	Connection *CouchbaseConnection
+	Connection *connect.CouchbaseConnection
 	//The configuration options.
 	Options *cconf.ConfigParams
 	//The Couchbase cluster object.
@@ -142,16 +154,19 @@ type CouchbasePersistence struct {
 	Prototype reflect.Type
 
 	CollectionName string
-
 	MaxPageSize    int
 }
 
-// NewCouchbasePersistence method are creates a new instance of the persistence component.
+// InheritCouchbasePersistence method are creates a new instance of the persistence component.
 // Parameters:
+//   - overrides References to override virtual methods
 //   - bucket  a bucket name.
 // Returns:  *CouchbasePersistence pointer on new instance
-func NewCouchbasePersistence(proto reflect.Type, bucket string) *CouchbasePersistence {
-	cp := CouchbasePersistence{}
+func InheritCouchbasePersistence(overrides ICouchbasePersistenceOverrides, proto reflect.Type, bucket string) *CouchbasePersistence {
+	cp := CouchbasePersistence{
+		Overrides:        overrides,
+		schemaStatements: make([]string, 0),
+	}
 	cp.defaultConfig = cconf.NewConfigParamsFromTuples(
 		"bucket", nil,
 		"dependencies.connection", "*:connection:couchbase:*:1.0",
@@ -188,7 +203,7 @@ func (c *CouchbasePersistence) SetReferences(references cref.IReferences) {
 	// Get connection
 	c.DependencyResolver.SetReferences(references)
 	resolve := c.DependencyResolver.GetOneOptional("connection")
-	c.Connection, _ = resolve.(*CouchbaseConnection)
+	c.Connection, _ = resolve.(*connect.CouchbaseConnection)
 	// Or create a local one
 	if c.Connection == nil {
 		c.Connection = c.createConnection()
@@ -203,8 +218,95 @@ func (c *CouchbasePersistence) UnsetReferences() {
 	c.Connection = nil
 }
 
-func (c *CouchbasePersistence) createConnection() *CouchbaseConnection {
-	connection := NewCouchbaseConnection(c.BucketName)
+// Defines a database schema for this persistence
+func (c *CouchbasePersistence) DefineSchema() {
+	// Override in child classes
+}
+
+// Adds a statement to schema definition
+//   - schemaStatement a statement to be added to the schema
+func (c *CouchbasePersistence) EnsureSchema(schemaStatement string) {
+	c.schemaStatements = append(c.schemaStatements, schemaStatement)
+}
+
+// Clears all auto-created objects
+func (c *CouchbasePersistence) ClearSchema() {
+	c.schemaStatements = []string{}
+}
+
+// ConvertFromPublic method help convert object (map) from public view by added "_c" field with collection name
+// Parameters:
+// 	  - item *interface{} item for convert
+// Returns: *interface{} converted item
+func (c *CouchbasePersistence) ConvertFromPublic(item interface{}) interface{} {
+	var value interface{} = item
+	if reflect.TypeOf(item).Kind() != reflect.Ptr {
+		panic("ConvertFromPublic:Error! Item is not a pointer!")
+	}
+
+	if reflect.TypeOf(value).Kind() == reflect.Map {
+		m, ok := value.(map[string]interface{})
+		if ok {
+			m["_c"] = c.CollectionName
+			return item
+		}
+		return item
+	}
+
+	if reflect.TypeOf(value).Kind() == reflect.Struct {
+		jsonVal, _ := json.Marshal(item)
+		resMap := make(map[string]interface{}, 0)
+		json.Unmarshal(jsonVal, &resMap)
+		resMap["_c"] = c.CollectionName
+		var result interface{} = resMap
+		return &result
+	}
+	panic("ConvertFromPublic:Error! Item must to be a map[string]interface{} or struct!")
+}
+
+// ConvertFromPublicPartial method are converts the given object from the public partial format.
+//   - value     the object to convert from the public partial format.
+// Retruns the initial object.
+func (c *CouchbasePersistence) ConvertFromPublicPartial(value interface{}) interface{} {
+	return c.ConvertFromPublic(value)
+}
+
+// ConvertToPublic method is convert object (map) to public view by exluded "_c" field
+// Parameters:
+// 	  - item *interface{}  item for convert
+// Returns: *interface{} converted item
+func (c *CouchbasePersistence) ConvertToPublic(item interface{}) interface{} {
+	var value interface{} = item
+	if reflect.TypeOf(item).Kind() != reflect.Ptr {
+		panic("ConvertToPublic:Error! Item is not a pointer!")
+	}
+
+	if reflect.TypeOf(value).Kind() == reflect.Map {
+		m, ok := value.(map[string]interface{})
+		if ok {
+			delete(m, "_c")
+			return m
+		}
+	}
+
+	if reflect.TypeOf(value).Kind() == reflect.Struct {
+		return item
+	}
+	panic("ConvertToPublic:Error! Item must to be a map[string]interface{} or struct!")
+}
+
+func (c *CouchbasePersistence) QuoteIdentifier(value string) string {
+	if value == "" {
+		return value
+	}
+	if value[0] == '`' {
+		return value
+	}
+	return "`" + value + "`"
+}
+
+func (c *CouchbasePersistence) createConnection() *connect.CouchbaseConnection {
+	connection := connect.NewCouchbaseConnection(c.BucketName)
 
 	if c.config != nil {
 		connection.Configure(c.config)
@@ -256,10 +358,22 @@ func (c *CouchbasePersistence) Open(correlationId string) (err error) {
 	c.Cluster = c.Connection.GetConnection()
 	c.Bucket = c.Connection.GetBucket()
 	c.BucketName = c.Connection.GetBucketName()
-	c.opened = true
+
+	// Define database schema
+	c.Overrides.DefineSchema()
+
+	// Recreate objects
+	err = c.CreateSchema(correlationId)
+	if err != nil {
+		c.Cluster = nil
+		c.Bucket = nil
+		err = cerr.NewConnectionError(correlationId, "CONNECT_FAILED", "Connection to postgres failed").WithCause(err)
+	} else {
+		c.opened = true
+		c.Logger.Debug(correlationId, "Connected to postgres database %s, collection %s", c.BucketName, c.QuoteIdentifier(c.CollectionName))
+	}
 
 	return nil
-
 }
 
 // Close method are closes component and frees used resources.
@@ -302,61 +416,49 @@ func (c *CouchbasePersistence) Clear(correlationId string) (err error) {
 	return nil
 }
 
-
-// ConvertFromPublic method help convert object (map) from public view by added "_c" field with collection name
-// Parameters:
-// 	  - item *interface{} item for convert
-// Returns: *interface{} converted item
-func (c *CouchbasePersistence) ConvertFromPublic(item *interface{}) *interface{} {
-	var value interface{} = *item
-	if reflect.TypeOf(item).Kind() != reflect.Ptr {
-		panic("ConvertFromPublic:Error! Item is not a pointer!")
+func (c *CouchbasePersistence) CreateSchema(correlationId string) (err error) {
+	if c.schemaStatements == nil || len(c.schemaStatements) == 0 {
+		return nil
 	}
 
-	if reflect.TypeOf(value).Kind() == reflect.Map {
-		m, ok := value.(map[string]interface{})
-		if ok {
-			m["_c"] = c.CollectionName
-			return item
-		}
-		return item;
-	}
+	// // Check if table exist to determine weither to auto create objects
+	// query := "SELECT to_regclass('" + c.TableName + "')"
+	// qResult, qErr := c.Client.Query(context.TODO(), query)
+	// if qErr != nil {
+	// 	return qErr
+	// }
+	// defer qResult.Close()
+	// // If table already exists then exit
+	// if qResult != nil && qResult.Next() {
+	// 	val, cErr := qResult.Values()
+	// 	if cErr != nil {
+	// 		return cErr
+	// 	}
 
-	if reflect.TypeOf(value).Kind() == reflect.Struct {
-		jsonVal, _ := json.Marshal(*item)
-		resMap := make(map[string]interface{}, 0)
-		json.Unmarshal(jsonVal, &resMap)
-		resMap["_c"] = c.CollectionName
-		var result interface{} = resMap
-		return &result
-	}
-	panic("ConvertFromPublic:Error! Item must to be a map[string]interface{} or struct!")
+	// 	if len(val) > 0 && val[0] == c.TableName {
+	// 		return nil
+	// 	}
+	// }
+	// c.Logger.Debug(correlationId, "Table "+c.TableName+" does not exist. Creating database objects...")
+	// wg := sync.WaitGroup{}
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	for _, dml := range c.schemaStatements {
+	// 		qResult, err := c.Client.Query(context.TODO(), dml)
+	// 		if err != nil {
+	// 			c.Logger.Error(correlationId, err, "Failed to autocreate database object")
+	// 		}
+	// 		if qResult != nil {
+	// 			qResult.Close()
+	// 		}
+	// 	}
+	// }()
+	// wg.Wait()
+	// return qResult.Err()
+
+	return nil
 }
-
-// ConvertToPublic method is convert object (map) to public view by exluded "_c" field
-// Parameters:
-// 	  - item *interface{}  item for convert
-// Returns: *interface{} converted item
-func (c *CouchbasePersistence) ConvertToPublic(item *interface{}) {
-	var value interface{} = *item
-	if reflect.TypeOf(item).Kind() != reflect.Ptr {
-		panic("ConvertToPublic:Error! Item is not a pointer!")
-	}
-
-	if reflect.TypeOf(value).Kind() == reflect.Map {
-		m, ok := value.(map[string]interface{})
-		if ok {
-			delete(m, "_c")
-			return
-		}
-	}
-
-	if reflect.TypeOf(value).Kind() == reflect.Struct {
-		return
-	}
-	panic("ConvertToPublic:Error! Item must to be a map[string]interface{} or struct!")
-}
-
 
 // GenerateBucketId method are generates unique id for specific collection in the bucket
 // Parameters:
@@ -598,9 +700,9 @@ func (c *CouchbasePersistence) Create(correlationId string, item interface{}) (r
 		return nil, nil
 	}
 	var newItem interface{}
-	newItem = cmpersist.CloneObject(item)
+	newItem = cmpersist.CloneObject(item, c.Prototype)
 	// Assign unique id if not exist
-	insertedItem := c.ConvertFromPublic(&newItem)
+	insertedItem := c.Overrides.ConvertFromPublic(&newItem)
 	id := cdata.IdGenerator.NextLong()
 	objectId := c.GenerateBucketId(id)
 
@@ -610,10 +712,9 @@ func (c *CouchbasePersistence) Create(correlationId string, item interface{}) (r
 		return nil, insErr
 	}
 	c.Logger.Trace(correlationId, "Created in %s with id = %s", c.BucketName, id)
-	c.ConvertToPublic(&newItem)
+	c.Overrides.ConvertToPublic(&newItem)
 	return c.GetPtrIfNeed(newItem), nil
 }
-
 
 // GetProtoPtr method are returns pointer on new prototype object for unmarshaling or decode from DB
 // Returns reflect.Value
@@ -629,7 +730,7 @@ func (c *CouchbasePersistence) GetProtoPtr() reflect.Value {
 // GetConvResult method are returns properly converted result in interface{} object from pointer in docPointer
 func (c *CouchbasePersistence) GetConvResult(docPointer reflect.Value) interface{} {
 	item := docPointer.Elem().Interface()
-	c.ConvertToPublic(&item)
+	c.Overrides.ConvertToPublic(&item)
 	if c.Prototype.Kind() == reflect.Ptr {
 		return docPointer.Interface()
 	}

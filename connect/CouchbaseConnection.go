@@ -1,4 +1,4 @@
-package persistence
+package connect
 
 import (
 	"strings"
@@ -9,7 +9,6 @@ import (
 	cerr "github.com/pip-services3-go/pip-services3-commons-go/errors"
 	cref "github.com/pip-services3-go/pip-services3-commons-go/refer"
 	clog "github.com/pip-services3-go/pip-services3-components-go/log"
-	couchcon "github.com/pip-services3-go/pip-services3-couchbase-go/connect"
 	gocb "gopkg.in/couchbase/gocb.v1"
 )
 
@@ -50,7 +49,7 @@ type CouchbaseConnection struct {
 	//The logger.
 	Logger *clog.CompositeLogger
 	//The connection resolver.
-	ConnectionResolver *couchcon.CouchbaseConnectionResolver
+	ConnectionResolver *CouchbaseConnectionResolver
 	//The configuration options.
 	Options *cconf.ConfigParams
 	//The Couchbase cluster connection object.
@@ -79,7 +78,7 @@ func NewCouchbaseConnection(bucketName string) *CouchbaseConnection {
 		"options.ram_quota", 100,
 	)
 	c.Logger = clog.NewCompositeLogger()
-	c.ConnectionResolver = couchcon.NewCouchbaseConnectionResolver()
+	c.ConnectionResolver = NewCouchbaseConnectionResolver()
 	c.Options = cconf.NewEmptyConfigParams()
 	return &c
 }

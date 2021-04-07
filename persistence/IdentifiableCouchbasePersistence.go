@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
-	
+
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
 	refl "github.com/pip-services3-go/pip-services3-commons-go/reflect"
 	cmpersist "github.com/pip-services3-go/pip-services3-data-go/persistence"
@@ -14,8 +14,7 @@ import (
 )
 
 type IdentifiableCouchbasePersistence struct {
-	*CouchbasePersistence
-	
+	CouchbasePersistence
 }
 
 /*
@@ -112,21 +111,21 @@ References:
 
 NewIdentifiableCouchbasePersistence method are creates a new instance of the persistence component.
 Parameters:
+  - overrides References to override virtual methods
   - proto reflect.Type prototype for properly convert
   - bucket string  couchbase bucket name
   - collection    (optional) a collection name.
 */
-func NewIdentifiableCouchbasePersistence(proto reflect.Type, bucket string, collection string) *IdentifiableCouchbasePersistence {
-
+func InheritIdentifiableCouchbasePersistence(overrides ICouchbasePersistenceOverrides, proto reflect.Type, bucket string, collection string) *IdentifiableCouchbasePersistence {
 	if bucket == "" {
 		panic("Bucket name could not be nil")
 	}
-
 	if collection == "" {
 		panic("Collection name could not be nil")
 	}
+
 	c := IdentifiableCouchbasePersistence{}
-	c.CouchbasePersistence = NewCouchbasePersistence(proto, bucket)
+	c.CouchbasePersistence = *InheritCouchbasePersistence(overrides, proto, bucket)
 	c.MaxPageSize = 100
 	c.CollectionName = collection
 	return &c
@@ -141,18 +140,6 @@ func (c *IdentifiableCouchbasePersistence) Configure(config *cconf.ConfigParams)
 	c.MaxPageSize = config.GetAsIntegerWithDefault("options.max_page_size", c.MaxPageSize)
 	c.CollectionName = config.GetAsStringWithDefault("collection", c.CollectionName)
 }
-
-
-
-// ConvertFromPublicPartial method are converts the given object from the public partial format.
-//   - value     the object to convert from the public partial format.
-// Retruns the initial object.
-func (c *IdentifiableCouchbasePersistence) ConvertFromPublicPartial(value *interface{}) *interface{} {
-	return c.ConvertFromPublic(value)
-}
-
-
-
 
 // GetListByIds method are gets a list of data items retrieved by given unique ids.
 // Parameters:
@@ -175,8 +162,7 @@ func (c *IdentifiableCouchbasePersistence) GetListByIds(correlationId string, id
 	if doErr != nil {
 		return nil, doErr
 	}
-	var i int
-	for i = 0; i < len(opItems); i++ {
+	for i := 0; i < len(opItems); i++ {
 		if opItems[i].(*gocb.GetOp).Err != nil {
 			continue
 		}
@@ -212,8 +198,6 @@ func (c *IdentifiableCouchbasePersistence) GetOneById(correlationId string, id i
 	return item, nil
 }
 
-
-
 // Create method are creates a data item.
 // Parameters:
 //   - correlation_id    (optional) transaction id to trace execution through call chain.
@@ -225,10 +209,10 @@ func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item int
 		return nil, nil
 	}
 	var newItem interface{}
-	newItem = cmpersist.CloneObject(item)
+	newItem = cmpersist.CloneObject(item, c.Prototype)
 	// Assign unique id if not exist
 	cmpersist.GenerateObjectId(&newItem)
-	insertedItem := c.ConvertFromPublic(&newItem)
+	insertedItem := c.Overrides.ConvertFromPublic(&newItem)
 	id := cmpersist.GetObjectId(newItem)
 	objectId := c.GenerateBucketId(id)
 
@@ -238,7 +222,7 @@ func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item int
 		return nil, insErr
 	}
 	c.Logger.Trace(correlationId, "Created in %s with id = %s", c.BucketName, id)
-	c.ConvertToPublic(&newItem)
+	c.Overrides.ConvertToPublic(&newItem)
 	return c.GetPtrIfNeed(newItem), nil
 }
 
@@ -253,11 +237,11 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 		return nil, nil
 	}
 	var newItem interface{}
-	newItem = cmpersist.CloneObject(item)
+	newItem = cmpersist.CloneObject(item, c.Prototype)
 	// Assign unique id if not exist
 	cmpersist.GenerateObjectId(&newItem)
 	id := cmpersist.GetObjectId(newItem)
-	setItem := c.ConvertFromPublic(&newItem)
+	setItem := c.Overrides.ConvertFromPublic(&newItem)
 	objectId := c.GenerateBucketId(id)
 
 	_, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
@@ -267,7 +251,7 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 	}
 
 	c.Logger.Trace(correlationId, "Set in %s with id = %s", c.BucketName, id)
-	c.ConvertToPublic(&newItem)
+	c.Overrides.ConvertToPublic(&newItem)
 	return c.GetPtrIfNeed(newItem), nil
 }
 
@@ -279,11 +263,11 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 // updated item or error.
 func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item interface{}) (result interface{}, err error) {
 	var newItem interface{}
-	newItem = cmpersist.CloneObject(item)
+	newItem = cmpersist.CloneObject(item, c.Prototype)
 	// Assign unique id if not exist
 	cmpersist.GenerateObjectId(&newItem)
 	id := cmpersist.GetObjectId(newItem)
-	updateItem := c.ConvertFromPublic(&newItem)
+	updateItem := c.Overrides.ConvertFromPublic(&newItem)
 	objectId := c.GenerateBucketId(id)
 
 	_, repErr := c.Bucket.Replace(objectId, updateItem, 0, 0)
@@ -292,7 +276,7 @@ func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item int
 		return nil, repErr
 	}
 	c.Logger.Trace(correlationId, "Updated in %s with id = %s", c.BucketName, id)
-	c.ConvertToPublic(&newItem)
+	c.Overrides.ConvertToPublic(&newItem)
 	return c.GetPtrIfNeed(newItem), nil
 }
 
@@ -304,7 +288,6 @@ func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item int
 // Returns: result interface{}, err error
 // updated item or error.
 func (c *IdentifiableCouchbasePersistence) UpdatePartially(correlationId string, id interface{}, data *cdata.AnyValueMap) (item interface{}, err error) {
-
 	if data == nil || id == nil {
 		return nil, nil
 	}
@@ -395,5 +378,3 @@ func (c *IdentifiableCouchbasePersistence) DeleteByIds(correlationId string, ids
 	c.Logger.Trace(correlationId, "Deleted %d items from %s", count, c.BucketName)
 	return err
 }
-
-

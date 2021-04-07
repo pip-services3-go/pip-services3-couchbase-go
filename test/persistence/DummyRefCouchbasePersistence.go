@@ -4,18 +4,20 @@ import (
 	"reflect"
 
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
-	cbpersist "github.com/pip-services3-go/pip-services3-couchbase-go/persistence"
+	persist "github.com/pip-services3-go/pip-services3-couchbase-go/persistence"
 	cbfixture "github.com/pip-services3-go/pip-services3-couchbase-go/test/fixture"
 )
 
 type DummyRefCouchbasePersistence struct {
-	cbpersist.IdentifiableCouchbasePersistence
+	persist.IdentifiableCouchbasePersistence
 }
 
 func NewDummyRefCouchbasePersistence() *DummyRefCouchbasePersistence {
 
 	proto := reflect.TypeOf(&cbfixture.Dummy{})
-	return &DummyRefCouchbasePersistence{*cbpersist.NewIdentifiableCouchbasePersistence(proto, "test", "dummies")}
+	c := &DummyRefCouchbasePersistence{}
+	c.IdentifiableCouchbasePersistence = *persist.InheritIdentifiableCouchbasePersistence(c, proto, "test", "dummies")
+	return c
 }
 
 func (c *DummyRefCouchbasePersistence) Create(correlationId string, item *cbfixture.Dummy) (result *cbfixture.Dummy, err error) {

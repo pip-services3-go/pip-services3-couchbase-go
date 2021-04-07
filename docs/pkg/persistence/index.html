@@ -593,7 +593,7 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
   // Assign unique id if not exist
   cmpersist.GenerateObjectId(&amp;newItem)
   id := cmpersist.GetObjectId(newItem)
-  setItem := c.ConvertFromPublic(&amp;newItem)
+  setItem := c.Overrides.ConvertFromPublic(&amp;newItem)
   objectId := c.GenerateBucketId(id)
 
   _, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
@@ -603,7 +603,7 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
   }
 
   c.Logger.Trace(correlationId, &#34;Set in %s with id = %s&#34;, c.BucketName, id)
-  c.ConvertToPublic(&amp;newItem)
+  c.Overrides.ConvertToPublic(&amp;newItem)
   return c.GetPtrIfNeed(newItem), nil
 }
 

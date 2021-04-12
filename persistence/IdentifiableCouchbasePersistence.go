@@ -212,7 +212,7 @@ func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item int
 	newItem = cmpersist.CloneObject(item, c.Prototype)
 	// Assign unique id if not exist
 	cmpersist.GenerateObjectId(&newItem)
-	insertedItem := c.Overrides.ConvertFromPublic(&newItem)
+	insertedItem := c.Overrides.ConvertFromPublic(newItem)
 	id := cmpersist.GetObjectId(newItem)
 	objectId := c.GenerateBucketId(id)
 
@@ -222,7 +222,7 @@ func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item int
 		return nil, insErr
 	}
 	c.Logger.Trace(correlationId, "Created in %s with id = %s", c.BucketName, id)
-	c.Overrides.ConvertToPublic(&newItem)
+	c.Overrides.ConvertToPublic(newItem)
 	return c.GetPtrIfNeed(newItem), nil
 }
 
@@ -241,7 +241,7 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 	// Assign unique id if not exist
 	cmpersist.GenerateObjectId(&newItem)
 	id := cmpersist.GetObjectId(newItem)
-	setItem := c.Overrides.ConvertFromPublic(&newItem)
+	setItem := c.Overrides.ConvertFromPublic(newItem)
 	objectId := c.GenerateBucketId(id)
 
 	_, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
@@ -251,7 +251,7 @@ func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interf
 	}
 
 	c.Logger.Trace(correlationId, "Set in %s with id = %s", c.BucketName, id)
-	c.Overrides.ConvertToPublic(&newItem)
+	c.Overrides.ConvertToPublic(newItem)
 	return c.GetPtrIfNeed(newItem), nil
 }
 
@@ -267,7 +267,7 @@ func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item int
 	// Assign unique id if not exist
 	cmpersist.GenerateObjectId(&newItem)
 	id := cmpersist.GetObjectId(newItem)
-	updateItem := c.Overrides.ConvertFromPublic(&newItem)
+	updateItem := c.Overrides.ConvertFromPublic(newItem)
 	objectId := c.GenerateBucketId(id)
 
 	_, repErr := c.Bucket.Replace(objectId, updateItem, 0, 0)
@@ -276,7 +276,7 @@ func (c *IdentifiableCouchbasePersistence) Update(correlationId string, item int
 		return nil, repErr
 	}
 	c.Logger.Trace(correlationId, "Updated in %s with id = %s", c.BucketName, id)
-	c.Overrides.ConvertToPublic(&newItem)
+	c.Overrides.ConvertToPublic(newItem)
 	return c.GetPtrIfNeed(newItem), nil
 }
 

@@ -40,7 +40,7 @@ func TestDummyCouchbaseConnection(t *testing.T) {
 
 	dbConfig := cconf.NewConfigParamsFromTuples(
 		"bucket", "test",
-		"options.auto_create", false, // true
+		"options.auto_create", true,
 		"options.auto_index", true,
 		"connection.uri", couchbaseUri,
 		"connection.host", couchbaseHost,

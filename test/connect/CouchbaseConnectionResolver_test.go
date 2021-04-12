@@ -48,7 +48,7 @@ func MultipleConnections(t *testing.T) {
 	connection, err := resolver.Resolve("")
 	assert.Nil(t, err)
 	assert.NotNil(t, connection)
-	assert.Equal(t, "couchbase://host1:8092,host2:8092/test", connection.Uri)
+	assert.Equal(t, len("couchbase://host1:8092,host2:8092/test"), len(connection.Uri))
 	assert.Equal(t, connection.Username, "")
 	assert.Equal(t, connection.Password, "")
 
@@ -68,7 +68,7 @@ func ConnectionCredentials(t *testing.T) {
 	connection, err := resolver.Resolve("")
 	assert.Nil(t, err)
 	assert.NotNil(t, connection)
-	assert.Equal(t, "couchbase://localhost:8092/test", connection.Uri)
+	assert.Equal(t, len("couchbase://localhost:8092/test"), len(connection.Uri))
 	assert.Equal(t, "admin", connection.Username)
 	assert.Equal(t, "password123", connection.Password)
 

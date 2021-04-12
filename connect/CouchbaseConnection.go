@@ -2,7 +2,6 @@ package connect
 
 import (
 	"strings"
-	"sync"
 	"time"
 
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
@@ -135,105 +134,76 @@ func (c *CouchbaseConnection) Open(correlationId string) (err error) {
 		c.Connection.Authenticate(c.Authenticator)
 	}
 	err = nil
-	wg := sync.WaitGroup{}
 	newBucket := false
-	wg.Add(1)
 
-	go func() {
-		defer wg.Done()
-		autocreate := c.Options.GetAsBoolean("auto_create")
-		if autocreate {
+	autocreate := c.Options.GetAsBoolean("auto_create")
+	if autocreate {
 
-			bucketStrType := c.Options.GetAsStringWithDefault("bucket_type", "couchbase")
-			bucketType := gocb.BucketType(0) // couchbase
+		bucketStrType := c.Options.GetAsStringWithDefault("bucket_type", "couchbase")
+		bucketType := gocb.BucketType(0) // couchbase
 
-			switch bucketStrType {
-			case "couchbase":
-				bucketType = gocb.BucketType(0)
-				break
-			case "memcached":
-				bucketType = gocb.BucketType(1)
-				break
-			case "ephemeral":
-				bucketType = gocb.BucketType(2)
-				break
-			}
-			options := gocb.BucketSettings{
-				Name:          c.BucketName,
-				Password:      "",
-				IndexReplicas: true,
-				Replicas:      1,
-				Type:          bucketType,
-				Quota:         int(c.Options.GetAsLongWithDefault("ram_quota", 100)),
-				FlushEnabled:  c.Options.GetAsBooleanWithDefault("flush_enabled", true),
-			}
-
-			crtErr := c.Connection.Manager(connection.Username, connection.Password).InsertBucket(&options)
-			if crtErr != nil {
-				err = crtErr
-				return
-			}
-			if err.Error() != "" && strings.Index(err.Error(), "name already exist") > 0 {
-				err = nil
-				return
-			}
-			newBucket = true
-			// Delay to allow couchbase to initialize the bucket
-			// Otherwise opening will fail
-			select {
-			case <-time.After(time.Millisecond * 2000):
-			}
+		switch bucketStrType {
+		case "couchbase":
+			bucketType = gocb.BucketType(0)
+			break
+		case "memcached":
+			bucketType = gocb.BucketType(1)
+			break
+		case "ephemeral":
+			bucketType = gocb.BucketType(2)
+			break
 		}
-	}()
-	wg.Wait()
+		options := gocb.BucketSettings{
+			Name:          c.BucketName,
+			Password:      "",
+			IndexReplicas: true,
+			Replicas:      1,
+			Type:          bucketType,
+			Quota:         int(c.Options.GetAsLongWithDefault("ram_quota", 100)),
+			FlushEnabled:  c.Options.GetAsBooleanWithDefault("flush_enabled", true),
+		}
 
-	if err != nil {
-		c.Connection = nil
-		c.Bucket = nil
-		return err
-	}
+		err = c.Connection.Manager(connection.Username, connection.Password).InsertBucket(&options)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		bucket, opnErr := c.Connection.OpenBucket(c.BucketName, "")
-		if opnErr != nil {
-			c.Logger.Error(correlationId, err, "Failed to open bucket")
-			err = cerr.NewConnectionError(correlationId, "CONNECT_FAILED", "Connection to couchbase failed").WithCause(err)
+		if err != nil && err.Error() != "" && strings.Index(err.Error(), "name already exist") < 0 {
+			c.Connection = nil
 			c.Bucket = nil
-			err = opnErr
-			return
+			return err
 		}
-		c.Logger.Debug(correlationId, "Connected to couchbase bucket %s", c.BucketName)
-		c.Bucket = bucket
-	}()
-	wg.Wait()
-	if err != nil {
+
+		if err == nil {
+			newBucket = true
+		}
+		// Delay to allow couchbase to initialize the bucket
+		// Otherwise opening will fail
+		select {
+		case <-time.After(time.Millisecond * 2000):
+		}
+	}
+
+	bucket, opnErr := c.Connection.OpenBucket(c.BucketName, "")
+	if opnErr != nil {
+		c.Logger.Error(correlationId, err, "Failed to open bucket")
+		err = cerr.NewConnectionError(correlationId, "CONNECT_FAILED", "Connection to couchbase failed").WithCause(opnErr)
+		c.Bucket = nil
 		c.Connection = nil
 		c.Bucket = nil
 		return err
 	}
+	c.Logger.Debug(correlationId, "Connected to couchbase bucket %s", c.BucketName)
+	c.Bucket = bucket
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		autoIndex := c.Options.GetAsBoolean("auto_index")
-		if !newBucket && !autoIndex {
-			return
-		}
+	autoIndex := c.Options.GetAsBoolean("auto_index")
+	if newBucket || autoIndex {
 
-		idxErr := c.Bucket.Manager("", "").CreatePrimaryIndex("", true, false)
-		if idxErr != nil {
-			err = idxErr
-			return
+		err = c.Bucket.Manager("", "").CreatePrimaryIndex("", true, false)
+		if err != nil {
+			c.Connection = nil
+			c.Bucket = nil
+			return err
 		}
-	}()
-	wg.Wait()
-	if err != nil {
-		c.Connection = nil
-		c.Bucket = nil
-		return err
 	}
+
 	return nil
 }
 

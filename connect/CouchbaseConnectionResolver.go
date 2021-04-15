@@ -2,7 +2,6 @@ package connect
 
 import (
 	"strconv"
-	"sync"
 
 	cconf "github.com/pip-services3-go/pip-services3-commons-go/config"
 	cdata "github.com/pip-services3-go/pip-services3-commons-go/data"
@@ -198,31 +197,20 @@ func (c *CouchbaseConnectionResolver) composeConnection(connections []*ccon.Conn
 func (c *CouchbaseConnectionResolver) Resolve(correlationId string) (connection *CouchbaseConnectionParams, err error) {
 	var connections []*ccon.ConnectionParams
 	var credential *auth.CredentialParams
-	var errCred, errConn error
 
-	var wg sync.WaitGroup
-
-	wg.Add(2)
-	go func() {
-		defer wg.Done()
-		connections, errConn = c.ConnectionResolver.ResolveAll(correlationId)
-		//Validate connections
-		if errConn == nil {
-			errConn = c.validateConnections(correlationId, connections)
-		}
-	}()
-	go func() {
-		defer wg.Done()
-		credential, errCred = c.CredentialResolver.Lookup(correlationId)
-		// Credentials are not validated right now
-	}()
-	wg.Wait()
-
-	if errConn != nil {
-		return nil, errConn
+	connections, err = c.ConnectionResolver.ResolveAll(correlationId)
+	//Validate connections
+	if err != nil {
+		return nil, err
 	}
-	if errCred != nil {
-		return nil, errCred
+	err = c.validateConnections(correlationId, connections)
+	if err != nil {
+		return nil, err
+	}
+	credential, err = c.CredentialResolver.Lookup(correlationId)
+	// Credentials are not validated right now
+	if err != nil {
+		return nil, err
 	}
 	connection = c.composeConnection(connections, credential)
 	return connection, nil

@@ -10,13 +10,10 @@ ENV GO111MODULE=on \
 WORKDIR /app
 
 # Copy the package files
-COPY go.mod ./
+COPY . .
 
 # Install all go_modules
-RUN go mod download
-
-# Copy the package files
-COPY . .
+RUN go mod tidy
 
 # Build the project
 RUN go build -o /go/bin/run .

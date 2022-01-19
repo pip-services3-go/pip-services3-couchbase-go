@@ -162,6 +162,7 @@ func (c *IdentifiableCouchbasePersistence) GetListByIds(correlationId string, id
 	if doErr != nil {
 		return nil, doErr
 	}
+	items = make([]interface{}, 0)
 	for i := 0; i < len(opItems); i++ {
 		if opItems[i].(*gocb.GetOp).Err != nil {
 			continue

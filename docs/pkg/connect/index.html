@@ -14,7 +14,7 @@
 
 
 
-<script>var goVersion = "go1.13.15";</script>
+<script>var goVersion = "go1.16.15";</script>
 <script src="../../lib/godoc/godocs.js" defer></script>
 </head>
 <body>
@@ -113,6 +113,38 @@
 			
 			
 				
+				<dd><a href="index.html#CouchbaseConnection">type CouchbaseConnection</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#NewCouchbaseConnection">func NewCouchbaseConnection(bucketName string) *CouchbaseConnection</a></dd>
+				
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.Close">func (c *CouchbaseConnection) Close(correlationId string) (err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.Configure">func (c *CouchbaseConnection) Configure(config *cconf.ConfigParams)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.GetBucket">func (c *CouchbaseConnection) GetBucket() *gocb.Bucket</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.GetBucketName">func (c *CouchbaseConnection) GetBucketName() string</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.GetConnection">func (c *CouchbaseConnection) GetConnection() *gocb.Cluster</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.IsOpen">func (c *CouchbaseConnection) IsOpen() bool</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.Open">func (c *CouchbaseConnection) Open(correlationId string) (err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.SetReferences">func (c *CouchbaseConnection) SetReferences(references cref.IReferences)</a></dd>
+				
+			
+				
 				<dd><a href="index.html#CouchbaseConnectionParams">type CouchbaseConnectionParams</a></dd>
 				
 				
@@ -145,6 +177,8 @@
 			<p>
 			<span style="font-size:90%">
 			
+				<a href="http://localhost:6060/src/connect/CouchbaseConnection.go">CouchbaseConnection.go</a>
+			
 				<a href="http://localhost:6060/src/connect/CouchbaseConnectionParams.go">CouchbaseConnectionParams.go</a>
 			
 				<a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go">CouchbaseConnectionResolver.go</a>
@@ -160,6 +194,237 @@
 		
 		
 		
+		
+			
+			
+			<h2 id="CouchbaseConnection">type <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=2043:2515#L36">CouchbaseConnection</a>
+				<a class="permalink" href="index.html#CouchbaseConnection">&#xb6;</a>
+				
+				
+			</h2>
+			<p>
+CouchbaseConnection it is couchbase connection using plain couchbase driver.
+This is the most basic persistence component that is only
+able to store data items of any type. Specific CRUD operations
+over the data items must be implemented in child classes by
+accessing c.Connection properties.
+</p>
+<p>
+Configuration parameters:
+</p>
+<pre> - bucket:                      (optional) Couchbase bucket name
+ - connection(s):
+   - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery]]
+   - host:                      host name or IP address
+   - port:                      port number (default: 27017)
+   - uri:                       resource URI or connection string with all parameters in it
+ - credential(s):
+   - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore]]
+   - username:                  (optional) user name
+   - password:                  (optional) user password
+ - options:
+   - auto_create:               (optional) automatically create missing bucket (default: false)
+   - auto_index:                (optional) automatically create primary index (default: false)
+   - flush_enabled:             (optional) bucket flush enabled (default: false)
+   - bucket_type:               (optional) bucket type (default: couchbase)
+   - ram_quota:                 (optional) RAM quota in MB (default: 100)
+
+References:
+</pre>
+<p>
+- *:logger:*:*:1.0           		(optional) ILogger components to pass log messages
+- *:discovery:*:*:1.0        		(optional) IDiscovery services
+- *:credential-store:\*:\*:1.0 		(optional) Credential stores to resolve credentials
+</p>
+
+			<pre>type CouchbaseConnection struct {
+
+    <span class="comment">//The logger.</span>
+<span id="CouchbaseConnection.Logger"></span>    Logger *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-components-go/log/">clog</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-components-go/log/#CompositeLogger">CompositeLogger</a>
+    <span class="comment">//The connection resolver.</span>
+<span id="CouchbaseConnection.ConnectionResolver"></span>    ConnectionResolver *<a href="index.html#CouchbaseConnectionResolver">CouchbaseConnectionResolver</a>
+    <span class="comment">//The configuration options.</span>
+<span id="CouchbaseConnection.Options"></span>    Options *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/">cconf</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/#ConfigParams">ConfigParams</a>
+    <span class="comment">//The Couchbase cluster connection object.</span>
+<span id="CouchbaseConnection.Connection"></span>    Connection *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Cluster">Cluster</a>
+    <span class="comment">//The Couchbase bucket name.</span>
+<span id="CouchbaseConnection.BucketName"></span>    BucketName <a href="http://localhost:6060/pkg/builtin/#string">string</a>
+    <span class="comment">//The Couchbase bucket object.</span>
+<span id="CouchbaseConnection.Bucket"></span>    Bucket        *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Bucket">Bucket</a>
+<span id="CouchbaseConnection.Authenticator"></span>    Authenticator <a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#PasswordAuthenticator">PasswordAuthenticator</a>
+    <span class="comment">// contains filtered or unexported fields</span>
+}
+</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+				
+				<h3 id="NewCouchbaseConnection">func <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=2661:2728#L56">NewCouchbaseConnection</a>
+					<a class="permalink" href="index.html#NewCouchbaseConnection">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func NewCouchbaseConnection(bucketName <a href="http://localhost:6060/pkg/builtin/#string">string</a>) *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a></pre>
+				<p>
+NewCouchbaseConnection are creates a new instance of the connection component.
+Parameters:
+</p>
+<pre>- bucketName the name of couchbase bucket
+</pre>
+
+				
+				
+			
+
+			
+				
+				<h3 id="CouchbaseConnection.Close">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=7062:7131#L205">Close</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.Close">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) Close(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Closes component and frees used resources.
+Parameters:
+</p>
+<pre>- correlationId (optional) transaction id to trace execution through call chain.
+</pre>
+<p>
+Returns: error
+error or null no errors occured.
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbaseConnection.Configure">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=3350:3417#L78">Configure</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.Configure">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) Configure(config *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/">cconf</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/#ConfigParams">ConfigParams</a>)</pre>
+				<p>
+Configure are configures component by passing configuration parameters.
+Parameters:
+</p>
+<pre>- config    configuration parameters to be set.
+</pre>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbaseConnection.GetBucket">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=7501:7555#L221">GetBucket</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.GetBucket">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) GetBucket() *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Bucket">Bucket</a></pre>
+				<p>
+GetBucket method are returned opened bucket
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbaseConnection.GetBucketName">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=7627:7679#L226">GetBucketName</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.GetBucketName">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) GetBucketName() <a href="http://localhost:6060/pkg/builtin/#string">string</a></pre>
+				<p>
+GetBucketName method are returned bucket name
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbaseConnection.GetConnection">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=7368:7427#L216">GetConnection</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.GetConnection">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) GetConnection() *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Cluster">Cluster</a></pre>
+				<p>
+GetConnection method are return opened connection
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbaseConnection.IsOpen">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=4073:4116#L95">IsOpen</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.IsOpen">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) IsOpen() <a href="http://localhost:6060/pkg/builtin/#bool">bool</a></pre>
+				<p>
+IsOpen method are checks if the component is opened.
+Retrun true if the component has been opened and false otherwise.
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbaseConnection.Open">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=4345:4413#L104">Open</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.Open">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) Open(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)</pre>
+				<p>
+Open method are opens the component.
+Parameters:
+</p>
+<pre>- correlationId  (optional) transaction id to trace execution through call chain.
+</pre>
+<p>
+Returns: error
+error or nil no errors occured.
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbaseConnection.SetReferences">func (*CouchbaseConnection) <a href="http://localhost:6060/src/connect/CouchbaseConnection.go?s=3786:3858#L88">SetReferences</a>
+					<a class="permalink" href="index.html#CouchbaseConnection.SetReferences">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) SetReferences(references <a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/refer/">cref</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/refer/#IReferences">IReferences</a>)</pre>
+				<p>
+SetReferences are sets references to dependent components.
+Parameters:
+</p>
+<pre>- references 	references to locate the component dependencies.
+</pre>
+
+				
+				
+				
+			
 		
 			
 			
@@ -193,7 +458,7 @@ CouchbaseConnectionParams struct for save connection params
 		
 			
 			
-			<h2 id="CouchbaseConnectionResolver">type <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=1569:1761#L30">CouchbaseConnectionResolver</a>
+			<h2 id="CouchbaseConnectionResolver">type <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=1561:1753#L29">CouchbaseConnectionResolver</a>
 				<a class="permalink" href="index.html#CouchbaseConnectionResolver">&#xb6;</a>
 				
 				
@@ -245,7 +510,7 @@ References:
 
 			
 				
-				<h3 id="NewCouchbaseConnectionResolver">func <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=1896:1962#L39">NewCouchbaseConnectionResolver</a>
+				<h3 id="NewCouchbaseConnectionResolver">func <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=1888:1954#L38">NewCouchbaseConnectionResolver</a>
 					<a class="permalink" href="index.html#NewCouchbaseConnectionResolver">&#xb6;</a>
 					
 					
@@ -262,7 +527,7 @@ Retruns *CouchbaseConnectionResolver
 
 			
 				
-				<h3 id="CouchbaseConnectionResolver.Configure">func (*CouchbaseConnectionResolver) <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=2270:2345#L49">Configure</a>
+				<h3 id="CouchbaseConnectionResolver.Configure">func (*CouchbaseConnectionResolver) <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=2262:2337#L48">Configure</a>
 					<a class="permalink" href="index.html#CouchbaseConnectionResolver.Configure">&#xb6;</a>
 					
 					
@@ -280,7 +545,7 @@ Parameters:
 				
 			
 				
-				<h3 id="CouchbaseConnectionResolver.Resolve">func (*CouchbaseConnectionResolver) <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=5979:6097#L188">Resolve</a>
+				<h3 id="CouchbaseConnectionResolver.Resolve">func (*CouchbaseConnectionResolver) <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=5971:6089#L187">Resolve</a>
 					<a class="permalink" href="index.html#CouchbaseConnectionResolver.Resolve">&#xb6;</a>
 					
 					
@@ -302,7 +567,7 @@ resolved connection params or error.
 				
 			
 				
-				<h3 id="CouchbaseConnectionResolver.SetReferences">func (*CouchbaseConnectionResolver) <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=2542:2622#L56">SetReferences</a>
+				<h3 id="CouchbaseConnectionResolver.SetReferences">func (*CouchbaseConnectionResolver) <a href="http://localhost:6060/src/connect/CouchbaseConnectionResolver.go?s=2534:2614#L55">SetReferences</a>
 					<a class="permalink" href="index.html#CouchbaseConnectionResolver.SetReferences">&#xb6;</a>
 					
 					
@@ -330,13 +595,13 @@ Sets references to dependent components.
 
 
 <div id="footer">
-Build version go1.13.15.<br>
+Build version go1.16.15.<br>
 Except as <a href="https://developers.google.com/site-policies#restrictions">noted</a>,
 the content of this page is licensed under the
 Creative Commons Attribution 3.0 License,
 and code is licensed under a <a href="http://localhost:6060/LICENSE">BSD license</a>.<br>
-<a href="http://localhost:6060/doc/tos.html">Terms of Service</a> |
-<a href="http://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
+<a href="https://golang.org/doc/tos.html">Terms of Service</a> |
+<a href="https://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
 </div>
 
 </div><!-- .container -->

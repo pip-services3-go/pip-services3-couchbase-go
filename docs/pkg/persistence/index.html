@@ -14,7 +14,7 @@
 
 
 
-<script>var goVersion = "go1.13.15";</script>
+<script>var goVersion = "go1.16.15";</script>
 <script src="../../lib/godoc/godocs.js" defer></script>
 </head>
 <body>
@@ -113,46 +113,17 @@
 			
 			
 				
-				<dd><a href="index.html#CouchbaseConnection">type CouchbaseConnection</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#NewCouchbaseConnection">func NewCouchbaseConnection(bucketName string) *CouchbaseConnection</a></dd>
-				
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.Close">func (c *CouchbaseConnection) Close(correlationId string) (err error)</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.Configure">func (c *CouchbaseConnection) Configure(config *cconf.ConfigParams)</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.GetBucket">func (c *CouchbaseConnection) GetBucket() *gocb.Bucket</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.GetBucketName">func (c *CouchbaseConnection) GetBucketName() string</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.GetConnection">func (c *CouchbaseConnection) GetConnection() *gocb.Cluster</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.IsOpen">func (c *CouchbaseConnection) IsOpen() bool</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.Open">func (c *CouchbaseConnection) Open(correlationId string) (err error)</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbaseConnection.SetReferences">func (c *CouchbaseConnection) SetReferences(references cref.IReferences)</a></dd>
-				
-			
-				
 				<dd><a href="index.html#CouchbasePersistence">type CouchbasePersistence</a></dd>
 				
 					
-					<dd>&nbsp; &nbsp; <a href="index.html#NewCouchbasePersistence">func NewCouchbasePersistence(proto reflect.Type, bucket string) *CouchbasePersistence</a></dd>
+					<dd>&nbsp; &nbsp; <a href="index.html#InheritCouchbasePersistence">func InheritCouchbasePersistence(overrides ICouchbasePersistenceOverrides, proto reflect.Type, bucket string) *CouchbasePersistence</a></dd>
 				
 				
 					
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.Clear">func (c *CouchbasePersistence) Clear(correlationId string) (err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.ClearSchema">func (c *CouchbasePersistence) ClearSchema()</a></dd>
 				
 					
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.Close">func (c *CouchbasePersistence) Close(correlationId string) (err error)</a></dd>
@@ -164,16 +135,31 @@
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.ConvertFromMap">func (c *CouchbasePersistence) ConvertFromMap(buf interface{}) interface{}</a></dd>
 				
 					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.ConvertFromPublic">func (c *CouchbasePersistence) ConvertFromPublic(item *interface{}) *interface{}</a></dd>
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.ConvertFromPublic">func (c *CouchbasePersistence) ConvertFromPublic(item interface{}) interface{}</a></dd>
 				
 					
-					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.ConvertToPublic">func (c *CouchbasePersistence) ConvertToPublic(item *interface{})</a></dd>
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.ConvertFromPublicPartial">func (c *CouchbasePersistence) ConvertFromPublicPartial(value interface{}) interface{}</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.ConvertToPublic">func (c *CouchbasePersistence) ConvertToPublic(item interface{}) interface{}</a></dd>
 				
 					
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.Create">func (c *CouchbasePersistence) Create(correlationId string, item interface{}) (result interface{}, err error)</a></dd>
 				
 					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.CreateSchema">func (c *CouchbasePersistence) CreateSchema(correlationId string) (err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.DefineSchema">func (c *CouchbasePersistence) DefineSchema()</a></dd>
+				
+					
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.DeleteByFilter">func (c *CouchbasePersistence) DeleteByFilter(correlationId string, filter string) (err error)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.EnsureIndex">func (c *CouchbasePersistence) EnsureIndex(name string, fields []string, deferred bool)</a></dd>
+				
+					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.EnsureSchema">func (c *CouchbasePersistence) EnsureSchema(schemaStatement schemaStatement)</a></dd>
 				
 					
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.GenerateBucketId">func (c *CouchbasePersistence) GenerateBucketId(value interface{}) string</a></dd>
@@ -206,6 +192,9 @@
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.Open">func (c *CouchbasePersistence) Open(correlationId string) (err error)</a></dd>
 				
 					
+					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.QuoteIdentifier">func (c *CouchbasePersistence) QuoteIdentifier(value string) string</a></dd>
+				
+					
 					<dd>&nbsp; &nbsp; <a href="index.html#CouchbasePersistence.SetReferences">func (c *CouchbasePersistence) SetReferences(references cref.IReferences)</a></dd>
 				
 					
@@ -213,17 +202,19 @@
 				
 			
 				
+				<dd><a href="index.html#ICouchbasePersistenceOverrides">type ICouchbasePersistenceOverrides</a></dd>
+				
+				
+			
+				
 				<dd><a href="index.html#IdentifiableCouchbasePersistence">type IdentifiableCouchbasePersistence</a></dd>
 				
 					
-					<dd>&nbsp; &nbsp; <a href="index.html#NewIdentifiableCouchbasePersistence">func NewIdentifiableCouchbasePersistence(proto reflect.Type, bucket string, collection string) *IdentifiableCouchbasePersistence</a></dd>
+					<dd>&nbsp; &nbsp; <a href="index.html#InheritIdentifiableCouchbasePersistence">func InheritIdentifiableCouchbasePersistence(overrides ICouchbasePersistenceOverrides, proto reflect.Type, bucket string, collection string) *IdentifiableCouchbasePersistence</a></dd>
 				
 				
 					
 					<dd>&nbsp; &nbsp; <a href="index.html#IdentifiableCouchbasePersistence.Configure">func (c *IdentifiableCouchbasePersistence) Configure(config *cconf.ConfigParams)</a></dd>
-				
-					
-					<dd>&nbsp; &nbsp; <a href="index.html#IdentifiableCouchbasePersistence.ConvertFromPublicPartial">func (c *IdentifiableCouchbasePersistence) ConvertFromPublicPartial(value *interface{}) *interface{}</a></dd>
 				
 					
 					<dd>&nbsp; &nbsp; <a href="index.html#IdentifiableCouchbasePersistence.Create">func (c *IdentifiableCouchbasePersistence) Create(correlationId string, item interface{}) (result interface{}, err error)</a></dd>
@@ -261,8 +252,6 @@
 			<p>
 			<span style="font-size:90%">
 			
-				<a href="http://localhost:6060/src/persistence/CouchbaseConnection.go">CouchbaseConnection.go</a>
-			
 				<a href="http://localhost:6060/src/persistence/CouchbasePersistence.go">CouchbasePersistence.go</a>
 			
 				<a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go">IdentifiableCouchbasePersistence.go</a>
@@ -281,356 +270,21 @@
 		
 			
 			
-			<h2 id="CouchbaseConnection">type <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=2130:2611#L38">CouchbaseConnection</a>
-				<a class="permalink" href="index.html#CouchbaseConnection">&#xb6;</a>
-				
-				
-			</h2>
-			<p>
-CouchbaseConnection it is couchbase connection using plain couchbase driver.
-This is the most basic persistence component that is only
-able to store data items of any type. Specific CRUD operations
-over the data items must be implemented in child classes by
-accessing c.Connection properties.
-</p>
-<p>
-Configuration parameters:
-</p>
-<pre> - bucket:                      (optional) Couchbase bucket name
- - connection(s):
-   - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery]]
-   - host:                      host name or IP address
-   - port:                      port number (default: 27017)
-   - uri:                       resource URI or connection string with all parameters in it
- - credential(s):
-   - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore]]
-   - username:                  (optional) user name
-   - password:                  (optional) user password
- - options:
-   - auto_create:               (optional) automatically create missing bucket (default: false)
-   - auto_index:                (optional) automatically create primary index (default: false)
-   - flush_enabled:             (optional) bucket flush enabled (default: false)
-   - bucket_type:               (optional) bucket type (default: couchbase)
-   - ram_quota:                 (optional) RAM quota in MB (default: 100)
-
-References:
-</pre>
-<p>
-- *:logger:*:*:1.0           		(optional) ILogger components to pass log messages
-- *:discovery:*:*:1.0        		(optional) IDiscovery services
-- *:credential-store:\*:\*:1.0 		(optional) Credential stores to resolve credentials
-</p>
-
-			<pre>type CouchbaseConnection struct {
-
-    <span class="comment">//The logger.</span>
-<span id="CouchbaseConnection.Logger"></span>    Logger *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-components-go/log/">clog</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-components-go/log/#CompositeLogger">CompositeLogger</a>
-    <span class="comment">//The connection resolver.</span>
-<span id="CouchbaseConnection.ConnectionResolver"></span>    ConnectionResolver *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-couchbase-go/connect/">couchcon</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-couchbase-go/connect/#CouchbaseConnectionResolver">CouchbaseConnectionResolver</a>
-    <span class="comment">//The configuration options.</span>
-<span id="CouchbaseConnection.Options"></span>    Options *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/">cconf</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/#ConfigParams">ConfigParams</a>
-    <span class="comment">//The Couchbase cluster connection object.</span>
-<span id="CouchbaseConnection.Connection"></span>    Connection *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Cluster">Cluster</a>
-    <span class="comment">//The Couchbase bucket name.</span>
-<span id="CouchbaseConnection.BucketName"></span>    BucketName <a href="http://localhost:6060/pkg/builtin/#string">string</a>
-    <span class="comment">//The Couchbase bucket object.</span>
-<span id="CouchbaseConnection.Bucket"></span>    Bucket        *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Bucket">Bucket</a>
-<span id="CouchbaseConnection.Authenticator"></span>    Authenticator <a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#PasswordAuthenticator">PasswordAuthenticator</a>
-    <span class="comment">// contains filtered or unexported fields</span>
-}
-</pre>
-
-			
-
-			
-
-			
-			
-			
-
-			
-				
-				<h3 id="NewCouchbaseConnection">func <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=2757:2824#L58">NewCouchbaseConnection</a>
-					<a class="permalink" href="index.html#NewCouchbaseConnection">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func NewCouchbaseConnection(bucketName <a href="http://localhost:6060/pkg/builtin/#string">string</a>) *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a></pre>
-				<p>
-NewCouchbaseConnection are creates a new instance of the connection component.
-Parameters:
-</p>
-<pre>- bucketName the name of couchbase bucket
-</pre>
-
-				
-				
-			
-
-			
-				
-				<h3 id="CouchbaseConnection.Close">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=7577:7646#L236">Close</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.Close">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) Close(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)</pre>
-				<p>
-Closes component and frees used resources.
-Parameters:
-</p>
-<pre>- correlationId (optional) transaction id to trace execution through call chain.
-</pre>
-<p>
-Returns: error
-error or null no errors occured.
-</p>
-
-				
-				
-				
-			
-				
-				<h3 id="CouchbaseConnection.Configure">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=3455:3522#L80">Configure</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.Configure">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) Configure(config *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/">cconf</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/#ConfigParams">ConfigParams</a>)</pre>
-				<p>
-Configure are configures component by passing configuration parameters.
-Parameters:
-</p>
-<pre>- config    configuration parameters to be set.
-</pre>
-
-				
-				
-				
-			
-				
-				<h3 id="CouchbaseConnection.GetBucket">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=8016:8070#L252">GetBucket</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.GetBucket">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) GetBucket() *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Bucket">Bucket</a></pre>
-				<p>
-GetBucket method are returned opened bucket
-</p>
-
-				
-				
-				
-			
-				
-				<h3 id="CouchbaseConnection.GetBucketName">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=8142:8194#L257">GetBucketName</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.GetBucketName">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) GetBucketName() <a href="http://localhost:6060/pkg/builtin/#string">string</a></pre>
-				<p>
-GetBucketName method are returned bucket name
-</p>
-
-				
-				
-				
-			
-				
-				<h3 id="CouchbaseConnection.GetConnection">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=7883:7942#L247">GetConnection</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.GetConnection">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) GetConnection() *<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/">gocb</a>.<a href="http://localhost:6060/pkg/gopkg.in/couchbase/gocb.v1/#Cluster">Cluster</a></pre>
-				<p>
-GetConnection method are return opened connection
-</p>
-
-				
-				
-				
-			
-				
-				<h3 id="CouchbaseConnection.IsOpen">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=4178:4221#L97">IsOpen</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.IsOpen">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) IsOpen() <a href="http://localhost:6060/pkg/builtin/#bool">bool</a></pre>
-				<p>
-IsOpen method are checks if the component is opened.
-Retrun true if the component has been opened and false otherwise.
-</p>
-
-				
-				
-				
-			
-				
-				<h3 id="CouchbaseConnection.Open">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=4450:4518#L106">Open</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.Open">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) Open(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)</pre>
-				<p>
-Open method are opens the component.
-Parameters:
-</p>
-<pre>- correlationId  (optional) transaction id to trace execution through call chain.
-</pre>
-<p>
-Returns: error
-error or nil no errors occured.
-</p>
-
-				
-				
-				
-			
-				
-				<h3 id="CouchbaseConnection.SetReferences">func (*CouchbaseConnection) <a href="http://localhost:6060/src/persistence/CouchbaseConnection.go?s=3891:3963#L90">SetReferences</a>
-					<a class="permalink" href="index.html#CouchbaseConnection.SetReferences">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>) SetReferences(references <a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/refer/">cref</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/refer/#IReferences">IReferences</a>)</pre>
-				<p>
-SetReferences are sets references to dependent components.
-Parameters:
-</p>
-<pre>- references 	references to locate the component dependencies.
-</pre>
-
-				
-				
-				
-			
-		
-			
-			
-			<h2 id="CouchbasePersistence">type <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=4436:5128#L111">CouchbasePersistence</a>
+			<h2 id="CouchbasePersistence">type <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=4839:5623#L127">CouchbasePersistence</a>
 				<a class="permalink" href="index.html#CouchbasePersistence">&#xb6;</a>
 				
 				
 			</h2>
-			<p>
-CouchbasePersistence abstract persistence component that stores data in Couchbase
-and is based using Couchbaseose object relational mapping.
-</p>
-<p>
-This is the most basic persistence component that is only
-able to store data items of interface{} type. Specific CRUD operations
-over the data items must be implemented in child classes by
-accessing c._collection or c._model properties.
-</p>
-<p>
-Configuration parameters:
-</p>
-<pre> - bucket:                      (optional) Couchbase bucket name
- - connection(s):
-   - discovery_key:             (optional) a key to retrieve the connection from connect.idiscovery.html IDiscovery
-   - host:                      host name or IP address
-   - port:                      port number (default: 27017)
-   - uri:                       resource URI or connection string with all parameters in it
- - credential(s):
-   - store_key:                 (optional) a key to retrieve the credentials from auth.icredentialstore.html ICredentialStore
-   - username:                  (optional) user name
-   - password:                  (optional) user password
- - options:
-   - auto_create:               (optional) automatically create missing bucket (default: false)
-   - auto_index:                (optional) automatically create primary index (default: false)
-   - flush_enabled:             (optional) bucket flush enabled (default: false)
-   - bucket_type:               (optional) bucket type (default: couchbase)
-   - ram_quota:                 (optional) RAM quota in MB (default: 100)
-
-References:
-</pre>
-<p>
-- *:logger:*:*:1.0           (optional) ILogger components to pass log messages
-- *:discovery:*:*:1.0        (optional) IDiscovery services
-- *:credential-store:*:*:1.0 (optional) Credential stores to resolve credentials
-</p>
-<p>
-Example:
-</p>
-<pre>type MyCouchbasePersistence struct {
-  *CouchbasePersistence
-}
-
-func NewMyCouchbasePersistence() *MyCouchbasePersistence {
-	c := MyCouchbasePersistence{}
-	c.CouchbasePersistence = NewCouchbasePersistence(reflect.TypeOf(MyData{}), &#34;mycollection&#34;);
-	return &amp;c;
-}
-
-func (c *MyCouchbasePersistence) GetOneById(correlationId string, id interface{}) (item interface{}, err error) {
-	objectId := c.GenerateBucketId(id)
-
-	buf := make(map[string]interface{}, 0)
-	_, getErr := c.Bucket.Get(objectId, &amp;buf)
-	if getErr != nil {
-		// Ignore &#34;Key does not exist on the server&#34; error
-		if getErr == gocb.ErrKeyNotFound {
-			return nil, nil
-		}
-		return nil, getErr
-	}
-	c.Logger.Trace(correlationId, &#34;Retrieved from %s by id = %s&#34;, c.BucketName, objectId)
-	item = c.ConvertFromMap(buf)
-	return item, nil
-}
-
-func (c *IdentifiableCouchbasePersistence) Set(correlationId string, item interface{}) (result interface{}, err error) {
-  if item == nil {
-      return nil, nil
-  }
-  var newItem interface{}
-  newItem = cmpersist.CloneObject(item)
-  // Assign unique id if not exist
-  cmpersist.GenerateObjectId(&amp;newItem)
-  id := cmpersist.GetObjectId(newItem)
-  setItem := c.Overrides.ConvertFromPublic(newItem)
-  objectId := c.GenerateBucketId(id)
-
-  _, upsertErr := c.Bucket.Upsert(objectId, setItem, 0)
-
-  if upsertErr != nil {
-     return nil, upsertErr
-  }
-
-  c.Logger.Trace(correlationId, &#34;Set in %s with id = %s&#34;, c.BucketName, id)
-  c.Overrides.ConvertToPublic(&amp;newItem)
-  return c.GetPtrIfNeed(newItem), nil
-}
-
-persistence := NewMyCouchbasePersistence();
-persistence.Configure(cconf.NewConfigParamsFromTuples(
-    &#34;host&#34;, &#34;localhost&#34;,
-    &#34;port&#34;, 27017,
-));
-
-persitence.Open(&#34;123&#34;)
-     ...
-
-setItem, err := persistence.Set(&#34;123&#34;, MyData{ name: &#34;ABC&#34; })
-if setErr=== nil {
-  item, err := persistence.GetOneById(&#34;123&#34;, setItem.Id)
-  fmt.Println(item);      // Result: { name: &#34;ABC&#34;, Id:&#34;...&#34; }
-}
-</pre>
-
+			
 			<pre>type CouchbasePersistence struct {
+<span id="CouchbasePersistence.Overrides"></span>    Overrides <a href="index.html#ICouchbasePersistenceOverrides">ICouchbasePersistenceOverrides</a>
 
     <span class="comment">//The dependency resolver.</span>
 <span id="CouchbasePersistence.DependencyResolver"></span>    DependencyResolver *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/refer/">crefer</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/refer/#DependencyResolver">DependencyResolver</a>
     <span class="comment">//The logger.</span>
 <span id="CouchbasePersistence.Logger"></span>    Logger *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-components-go/log/">clog</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-components-go/log/#CompositeLogger">CompositeLogger</a>
     <span class="comment">//The Couchbase connection component.</span>
-<span id="CouchbasePersistence.Connection"></span>    Connection *<a href="index.html#CouchbaseConnection">CouchbaseConnection</a>
+<span id="CouchbasePersistence.Connection"></span>    Connection *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-couchbase-go/connect/">connect</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-couchbase-go/connect/#CouchbaseConnection">CouchbaseConnection</a>
     <span class="comment">//The configuration options.</span>
 <span id="CouchbasePersistence.Options"></span>    Options *<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/">cconf</a>.<a href="http://localhost:6060/pkg/github.com/pip-services3-go/pip-services3-commons-go/config/#ConfigParams">ConfigParams</a>
     <span class="comment">//The Couchbase cluster object.</span>
@@ -643,8 +297,7 @@ if setErr=== nil {
     Prototype <a href="http://localhost:6060/pkg/reflect/">reflect</a>.<a href="http://localhost:6060/pkg/reflect/#Type">Type</a>
 
 <span id="CouchbasePersistence.CollectionName"></span>    CollectionName <a href="http://localhost:6060/pkg/builtin/#string">string</a>
-
-<span id="CouchbasePersistence.MaxPageSize"></span>    MaxPageSize <a href="http://localhost:6060/pkg/builtin/#int">int</a>
+<span id="CouchbasePersistence.MaxPageSize"></span>    MaxPageSize    <a href="http://localhost:6060/pkg/builtin/#int">int</a>
     <span class="comment">// contains filtered or unexported fields</span>
 }
 </pre>
@@ -659,17 +312,18 @@ if setErr=== nil {
 
 			
 				
-				<h3 id="NewCouchbasePersistence">func <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=5325:5410#L143">NewCouchbasePersistence</a>
-					<a class="permalink" href="index.html#NewCouchbasePersistence">&#xb6;</a>
+				<h3 id="InheritCouchbasePersistence">func <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=5880:6011#L163">InheritCouchbasePersistence</a>
+					<a class="permalink" href="index.html#InheritCouchbasePersistence">&#xb6;</a>
 					
 					
 				</h3>
-				<pre>func NewCouchbasePersistence(proto <a href="http://localhost:6060/pkg/reflect/">reflect</a>.<a href="http://localhost:6060/pkg/reflect/#Type">Type</a>, bucket <a href="http://localhost:6060/pkg/builtin/#string">string</a>) *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a></pre>
+				<pre>func InheritCouchbasePersistence(overrides <a href="index.html#ICouchbasePersistenceOverrides">ICouchbasePersistenceOverrides</a>, proto <a href="http://localhost:6060/pkg/reflect/">reflect</a>.<a href="http://localhost:6060/pkg/reflect/#Type">Type</a>, bucket <a href="http://localhost:6060/pkg/builtin/#string">string</a>) *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a></pre>
 				<p>
-NewCouchbasePersistence method are creates a new instance of the persistence component.
+InheritCouchbasePersistence method are creates a new instance of the persistence component.
 Parameters:
 </p>
-<pre>- bucket  a bucket name.
+<pre>- overrides References to override virtual methods
+- bucket  a bucket name.
 </pre>
 <p>
 Returns:  *CouchbasePersistence pointer on new instance
@@ -681,7 +335,7 @@ Returns:  *CouchbasePersistence pointer on new instance
 
 			
 				
-				<h3 id="CouchbasePersistence.Clear">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=9399:9469#L281">Clear</a>
+				<h3 id="CouchbasePersistence.Clear">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=13395:13465#L412">Clear</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.Clear">&#xb6;</a>
 					
 					
@@ -702,7 +356,22 @@ error or nil no errors occured.
 				
 			
 				
-				<h3 id="CouchbasePersistence.Close">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=8842:8912#L259">Close</a>
+				<h3 id="CouchbasePersistence.ClearSchema">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=8740:8784#L247">ClearSchema</a>
+					<a class="permalink" href="index.html#CouchbasePersistence.ClearSchema">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) ClearSchema()</pre>
+				<p>
+Clears all auto-created objects
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbasePersistence.Close">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=12838:12908#L390">Close</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.Close">&#xb6;</a>
 					
 					
@@ -723,7 +392,7 @@ error or nil no errors occured.
 				
 			
 				
-				<h3 id="CouchbasePersistence.Configure">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=6122:6190#L165">Configure</a>
+				<h3 id="CouchbasePersistence.Configure">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=6804:6872#L188">Configure</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.Configure">&#xb6;</a>
 					
 					
@@ -740,7 +409,7 @@ Configure method are configures component by passing configuration parameters.
 				
 			
 				
-				<h3 id="CouchbasePersistence.ConvertFromMap">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=21139:21213#L640">ConvertFromMap</a>
+				<h3 id="CouchbasePersistence.ConvertFromMap">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=24042:24116#L733">ConvertFromMap</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.ConvertFromMap">&#xb6;</a>
 					
 					
@@ -755,12 +424,12 @@ ConvertFromMap method are converts from map[string]interface{} to object, define
 				
 			
 				
-				<h3 id="CouchbasePersistence.ConvertFromPublic">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=10075:10155#L300">ConvertFromPublic</a>
+				<h3 id="CouchbasePersistence.ConvertFromPublic">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=9049:9127#L255">ConvertFromPublic</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.ConvertFromPublic">&#xb6;</a>
 					
 					
 				</h3>
-				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) ConvertFromPublic(item *interface{}) *interface{}</pre>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) ConvertFromPublic(item interface{}) interface{}</pre>
 				<p>
 ConvertFromPublic method help convert object (map) from public view by added &#34;_c&#34; field with collection name
 Parameters:
@@ -776,12 +445,32 @@ Returns: *interface{} converted item
 				
 			
 				
-				<h3 id="CouchbasePersistence.ConvertToPublic">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=11003:11068#L330">ConvertToPublic</a>
+				<h3 id="CouchbasePersistence.ConvertFromPublicPartial">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=9873:9959#L280">ConvertFromPublicPartial</a>
+					<a class="permalink" href="index.html#CouchbasePersistence.ConvertFromPublicPartial">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) ConvertFromPublicPartial(value interface{}) interface{}</pre>
+				<p>
+ConvertFromPublicPartial method are converts the given object from the public partial format.
+</p>
+<pre>- value     the object to convert from the public partial format.
+</pre>
+<p>
+Retruns the initial object.
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbasePersistence.ConvertToPublic">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=10186:10262#L288">ConvertToPublic</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.ConvertToPublic">&#xb6;</a>
 					
 					
 				</h3>
-				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) ConvertToPublic(item *interface{})</pre>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) ConvertToPublic(item interface{}) interface{}</pre>
 				<p>
 ConvertToPublic method is convert object (map) to public view by exluded &#34;_c&#34; field
 Parameters:
@@ -797,7 +486,7 @@ Returns: *interface{} converted item
 				
 			
 				
-				<h3 id="CouchbasePersistence.Create">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=19380:19489#L586">Create</a>
+				<h3 id="CouchbasePersistence.Create">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=22244:22353#L680">Create</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.Create">&#xb6;</a>
 					
 					
@@ -820,7 +509,34 @@ created item or error.
 				
 			
 				
-				<h3 id="CouchbasePersistence.DeleteByFilter">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=18582:18676#L562">DeleteByFilter</a>
+				<h3 id="CouchbasePersistence.CreateSchema">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=13860:13937#L426">CreateSchema</a>
+					<a class="permalink" href="index.html#CouchbasePersistence.CreateSchema">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) CreateSchema(correlationId <a href="http://localhost:6060/pkg/builtin/#string">string</a>) (err <a href="http://localhost:6060/pkg/builtin/#error">error</a>)</pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="CouchbasePersistence.DefineSchema">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=7958:8003#L220">DefineSchema</a>
+					<a class="permalink" href="index.html#CouchbasePersistence.DefineSchema">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) DefineSchema()</pre>
+				<p>
+Defines a database schema for this persistence
+</p>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbasePersistence.DeleteByFilter">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=21446:21540#L656">DeleteByFilter</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.DeleteByFilter">&#xb6;</a>
 					
 					
@@ -845,7 +561,42 @@ error or nil for success.
 				
 			
 				
-				<h3 id="CouchbasePersistence.GenerateBucketId">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=11673:11746#L355">GenerateBucketId</a>
+				<h3 id="CouchbasePersistence.EnsureIndex">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=8214:8301#L228">EnsureIndex</a>
+					<a class="permalink" href="index.html#CouchbasePersistence.EnsureIndex">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) EnsureIndex(name <a href="http://localhost:6060/pkg/builtin/#string">string</a>, fields []<a href="http://localhost:6060/pkg/builtin/#string">string</a>, deferred <a href="http://localhost:6060/pkg/builtin/#bool">bool</a>)</pre>
+				<p>
+Adds index definition to create it on opening
+</p>
+<pre>- keys index keys (fields)
+- options index options
+</pre>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbasePersistence.EnsureSchema">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=8557:8633#L242">EnsureSchema</a>
+					<a class="permalink" href="index.html#CouchbasePersistence.EnsureSchema">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) EnsureSchema(schemaStatement schemaStatement)</pre>
+				<p>
+Adds a statement to schema definition
+</p>
+<pre>- schemaStatement a statement to be added to the schema
+</pre>
+
+				
+				
+				
+			
+				
+				<h3 id="CouchbasePersistence.GenerateBucketId">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=14537:14610#L449">GenerateBucketId</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GenerateBucketId">&#xb6;</a>
 					
 					
@@ -866,7 +617,7 @@ Retruns a unique bucket id.
 				
 			
 				
-				<h3 id="CouchbasePersistence.GenerateBucketIds">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=12004:12082#L366">GenerateBucketIds</a>
+				<h3 id="CouchbasePersistence.GenerateBucketIds">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=14868:14946#L460">GenerateBucketIds</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GenerateBucketIds">&#xb6;</a>
 					
 					
@@ -887,7 +638,7 @@ Retruns a unique bucket ids.
 				
 			
 				
-				<h3 id="CouchbasePersistence.GetConvResult">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=20441:20523#L620">GetConvResult</a>
+				<h3 id="CouchbasePersistence.GetConvResult">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=23335:23417#L713">GetConvResult</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GetConvResult">&#xb6;</a>
 					
 					
@@ -902,7 +653,7 @@ GetConvResult method are returns properly converted result in interface{} object
 				
 			
 				
-				<h3 id="CouchbasePersistence.GetListByFilter">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=15388:15529#L467">GetListByFilter</a>
+				<h3 id="CouchbasePersistence.GetListByFilter">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=18252:18393#L561">GetListByFilter</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GetListByFilter">&#xb6;</a>
 					
 					
@@ -930,7 +681,7 @@ data list or error.
 				
 			
 				
-				<h3 id="CouchbasePersistence.GetOneRandom">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=16930:17040#L513">GetOneRandom</a>
+				<h3 id="CouchbasePersistence.GetOneRandom">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=19794:19904#L607">GetOneRandom</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GetOneRandom">&#xb6;</a>
 					
 					
@@ -955,7 +706,7 @@ a random item or error.
 				
 			
 				
-				<h3 id="CouchbasePersistence.GetPageByFilter">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=12964:13135#L388">GetPageByFilter</a>
+				<h3 id="CouchbasePersistence.GetPageByFilter">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=15828:15999#L482">GetPageByFilter</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GetPageByFilter">&#xb6;</a>
 					
 					
@@ -984,7 +735,7 @@ data page or error.
 				
 			
 				
-				<h3 id="CouchbasePersistence.GetProtoPtr">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=20157:20215#L611">GetProtoPtr</a>
+				<h3 id="CouchbasePersistence.GetProtoPtr">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=23051:23109#L704">GetProtoPtr</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GetProtoPtr">&#xb6;</a>
 					
 					
@@ -1001,7 +752,7 @@ pointer on new empty object
 				
 			
 				
-				<h3 id="CouchbasePersistence.GetPtrIfNeed">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=20789:20862#L630">GetPtrIfNeed</a>
+				<h3 id="CouchbasePersistence.GetPtrIfNeed">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=23692:23765#L723">GetPtrIfNeed</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.GetPtrIfNeed">&#xb6;</a>
 					
 					
@@ -1016,7 +767,7 @@ GetPtrIfNeed method are checks c.Prototype if need return pointer or value and r
 				
 			
 				
-				<h3 id="CouchbasePersistence.IsOpen">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=7621:7665#L211">IsOpen</a>
+				<h3 id="CouchbasePersistence.IsOpen">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=11189:11233#L330">IsOpen</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.IsOpen">&#xb6;</a>
 					
 					
@@ -1032,7 +783,7 @@ Returns true if the component has been opened and false otherwise.
 				
 			
 				
-				<h3 id="CouchbasePersistence.Open">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=7867:7936#L219">Open</a>
+				<h3 id="CouchbasePersistence.Open">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=11435:11504#L338">Open</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.Open">&#xb6;</a>
 					
 					
@@ -1053,7 +804,19 @@ error or nil no errors occured.
 				
 			
 				
-				<h3 id="CouchbasePersistence.SetReferences">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=6569:6642#L175">SetReferences</a>
+				<h3 id="CouchbasePersistence.QuoteIdentifier">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=10595:10662#L305">QuoteIdentifier</a>
+					<a class="permalink" href="index.html#CouchbasePersistence.QuoteIdentifier">&#xb6;</a>
+					
+					
+				</h3>
+				<pre>func (c *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>) QuoteIdentifier(value <a href="http://localhost:6060/pkg/builtin/#string">string</a>) <a href="http://localhost:6060/pkg/builtin/#string">string</a></pre>
+				
+				
+				
+				
+			
+				
+				<h3 id="CouchbasePersistence.SetReferences">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=7251:7324#L198">SetReferences</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.SetReferences">&#xb6;</a>
 					
 					
@@ -1070,7 +833,7 @@ SetReferences method are sets references to dependent components.
 				
 			
 				
-				<h3 id="CouchbasePersistence.UnsetReferences">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=7144:7192#L192">UnsetReferences</a>
+				<h3 id="CouchbasePersistence.UnsetReferences">func (*CouchbasePersistence) <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=7834:7882#L215">UnsetReferences</a>
 					<a class="permalink" href="index.html#CouchbasePersistence.UnsetReferences">&#xb6;</a>
 					
 					
@@ -1087,14 +850,41 @@ UnsetReferences method is unsets (clears) previously set references to dependent
 		
 			
 			
-			<h2 id="IdentifiableCouchbasePersistence">type <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=387:460#L6">IdentifiableCouchbasePersistence</a>
+			<h2 id="ICouchbasePersistenceOverrides">type <a href="http://localhost:6060/src/persistence/CouchbasePersistence.go?s=756:973#L12">ICouchbasePersistenceOverrides</a>
+				<a class="permalink" href="index.html#ICouchbasePersistenceOverrides">&#xb6;</a>
+				
+				
+			</h2>
+			
+			<pre>type ICouchbasePersistenceOverrides interface {
+    DefineSchema()
+    ConvertFromPublic(item interface{}) interface{}
+    ConvertToPublic(item interface{}) interface{}
+    ConvertFromPublicPartial(item interface{}) interface{}
+}</pre>
+
+			
+
+			
+
+			
+			
+			
+
+			
+
+			
+		
+			
+			
+			<h2 id="IdentifiableCouchbasePersistence">type <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=401:473#L6">IdentifiableCouchbasePersistence</a>
 				<a class="permalink" href="index.html#IdentifiableCouchbasePersistence">&#xb6;</a>
 				
 				
 			</h2>
 			
 			<pre>type IdentifiableCouchbasePersistence struct {
-    *<a href="index.html#CouchbasePersistence">CouchbasePersistence</a>
+    <a href="index.html#CouchbasePersistence">CouchbasePersistence</a>
 }
 </pre>
 
@@ -1108,12 +898,12 @@ UnsetReferences method is unsets (clears) previously set references to dependent
 
 			
 				
-				<h3 id="NewIdentifiableCouchbasePersistence">func <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=4555:4683#L109">NewIdentifiableCouchbasePersistence</a>
-					<a class="permalink" href="index.html#NewIdentifiableCouchbasePersistence">&#xb6;</a>
+				<h3 id="InheritIdentifiableCouchbasePersistence">func <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=4722:4896#L109">InheritIdentifiableCouchbasePersistence</a>
+					<a class="permalink" href="index.html#InheritIdentifiableCouchbasePersistence">&#xb6;</a>
 					
 					
 				</h3>
-				<pre>func NewIdentifiableCouchbasePersistence(proto <a href="http://localhost:6060/pkg/reflect/">reflect</a>.<a href="http://localhost:6060/pkg/reflect/#Type">Type</a>, bucket <a href="http://localhost:6060/pkg/builtin/#string">string</a>, collection <a href="http://localhost:6060/pkg/builtin/#string">string</a>) *<a href="index.html#IdentifiableCouchbasePersistence">IdentifiableCouchbasePersistence</a></pre>
+				<pre>func InheritIdentifiableCouchbasePersistence(overrides <a href="index.html#ICouchbasePersistenceOverrides">ICouchbasePersistenceOverrides</a>, proto <a href="http://localhost:6060/pkg/reflect/">reflect</a>.<a href="http://localhost:6060/pkg/reflect/#Type">Type</a>, bucket <a href="http://localhost:6060/pkg/builtin/#string">string</a>, collection <a href="http://localhost:6060/pkg/builtin/#string">string</a>) *<a href="index.html#IdentifiableCouchbasePersistence">IdentifiableCouchbasePersistence</a></pre>
 				<p>
 IdentifiableCouchbasePersistence abstract persistence component that stores data in Couchbase
 and implements a number of CRUD operations over data items with unique ids.
@@ -1213,7 +1003,8 @@ References:
 NewIdentifiableCouchbasePersistence method are creates a new instance of the persistence component.
 Parameters:
 </p>
-<pre>- proto reflect.Type prototype for properly convert
+<pre>- overrides References to override virtual methods
+- proto reflect.Type prototype for properly convert
 - bucket string  couchbase bucket name
 - collection    (optional) a collection name.
 </pre>
@@ -1224,7 +1015,7 @@ Parameters:
 
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.Configure">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=5143:5223#L128">Configure</a>
+				<h3 id="IdentifiableCouchbasePersistence.Configure">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=5389:5469#L127">Configure</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.Configure">&#xb6;</a>
 					
 					
@@ -1243,27 +1034,7 @@ Parameters:
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.ConvertFromPublicPartial">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=5643:5743#L140">ConvertFromPublicPartial</a>
-					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.ConvertFromPublicPartial">&#xb6;</a>
-					
-					
-				</h3>
-				<pre>func (c *<a href="index.html#IdentifiableCouchbasePersistence">IdentifiableCouchbasePersistence</a>) ConvertFromPublicPartial(value *interface{}) *interface{}</pre>
-				<p>
-ConvertFromPublicPartial method are converts the given object from the public partial format.
-</p>
-<pre>- value     the object to convert from the public partial format.
-</pre>
-<p>
-Retruns the initial object.
-</p>
-
-				
-				
-				
-			
-				
-				<h3 id="IdentifiableCouchbasePersistence.Create">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=7932:8053#L213">Create</a>
+				<h3 id="IdentifiableCouchbasePersistence.Create">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=7924:8045#L198">Create</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.Create">&#xb6;</a>
 					
 					
@@ -1286,7 +1057,7 @@ created item or error.
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.DeleteById">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=12270:12391#L337">DeleteById</a>
+				<h3 id="IdentifiableCouchbasePersistence.DeleteById">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=12477:12598#L321">DeleteById</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.DeleteById">&#xb6;</a>
 					
 					
@@ -1309,7 +1080,7 @@ deleted item or error.
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.DeleteByIds">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=13182:13289#L364">DeleteByIds</a>
+				<h3 id="IdentifiableCouchbasePersistence.DeleteByIds">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=13416:13523#L348">DeleteByIds</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.DeleteByIds">&#xb6;</a>
 					
 					
@@ -1331,7 +1102,7 @@ error or nil for success.
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.GetListByIds">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=6104:6233#L153">GetListByIds</a>
+				<h3 id="IdentifiableCouchbasePersistence.GetListByIds">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=6018:6147#L140">GetListByIds</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.GetListByIds">&#xb6;</a>
 					
 					
@@ -1354,7 +1125,7 @@ a data list or error.
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.GetOneById">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=7127:7248#L188">GetOneById</a>
+				<h3 id="IdentifiableCouchbasePersistence.GetOneById">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=7098:7219#L175">GetOneById</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.GetOneById">&#xb6;</a>
 					
 					
@@ -1376,7 +1147,7 @@ data item or error.
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.Set">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=8957:9075#L241">Set</a>
+				<h3 id="IdentifiableCouchbasePersistence.Set">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=9008:9126#L226">Set</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.Set">&#xb6;</a>
 					
 					
@@ -1397,7 +1168,7 @@ Parameters:
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.Update">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=9885:10006#L270">Update</a>
+				<h3 id="IdentifiableCouchbasePersistence.Update">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=9996:10117#L255">Update</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.Update">&#xb6;</a>
 					
 					
@@ -1420,7 +1191,7 @@ updated item or error.
 				
 			
 				
-				<h3 id="IdentifiableCouchbasePersistence.UpdatePartially">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=10886:11037#L296">UpdatePartially</a>
+				<h3 id="IdentifiableCouchbasePersistence.UpdatePartially">func (*IdentifiableCouchbasePersistence) <a href="http://localhost:6060/src/persistence/IdentifiableCouchbasePersistence.go?s=11054:11205#L281">UpdatePartially</a>
 					<a class="permalink" href="index.html#IdentifiableCouchbasePersistence.UpdatePartially">&#xb6;</a>
 					
 					
@@ -1455,13 +1226,13 @@ updated item or error.
 
 
 <div id="footer">
-Build version go1.13.15.<br>
+Build version go1.16.15.<br>
 Except as <a href="https://developers.google.com/site-policies#restrictions">noted</a>,
 the content of this page is licensed under the
 Creative Commons Attribution 3.0 License,
 and code is licensed under a <a href="http://localhost:6060/LICENSE">BSD license</a>.<br>
-<a href="http://localhost:6060/doc/tos.html">Terms of Service</a> |
-<a href="http://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
+<a href="https://golang.org/doc/tos.html">Terms of Service</a> |
+<a href="https://www.google.com/intl/en/policies/privacy/">Privacy Policy</a>
 </div>
 
 </div><!-- .container -->
